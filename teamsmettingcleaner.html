@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Limpador VTT → TXT + Métricas</title>
+  <title>Limpador VTT &rarr; TXT + M&eacute;tricas</title>
   <style>
     :root{
       color-scheme: light dark;
@@ -27,7 +27,7 @@
     }
     *{box-sizing:border-box}
     body{margin:0; padding:22px; font-family: var(--sans); line-height:1.35; background: var(--bg); color: var(--fg)}
-    .wrap{max-width: 1120px; margin:0 auto}
+    .wrap{max-width: 900px; margin:0 auto}
 
     .top{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:baseline; justify-content:space-between; margin-bottom:12px}
     h1{font-size:18px; margin:0; letter-spacing:0.2px}
@@ -36,8 +36,7 @@
     .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.06); font-size:12px; color: var(--muted); white-space:nowrap}
     .kbd{font-family: var(--mono); border:1px solid var(--border2); border-bottom-width:2px; padding:1px 6px; border-radius:9px; font-size:12px; opacity:0.95}
 
-    .grid{display:grid; grid-template-columns: 1fr; gap:14px; margin-top:14px}
-    @media (min-width: 980px){ .grid{grid-template-columns: 1.1fr 0.9fr;} }
+    .stack{display:flex; flex-direction:column; gap:14px; margin-top:14px}
 
     .card{border:1px solid var(--border); border-radius: var(--r); padding:14px; background: var(--card); box-shadow: var(--shadow)}
     .card h2{font-size:14px; margin:0 0 10px; opacity:0.95}
@@ -49,7 +48,7 @@
     }
 
     label{display:block; font-weight:800; font-size:12px; margin:0 0 6px; opacity:0.92}
-    input[type=file], input[type=text], input[type=date], input[type=time]{
+    input[type=file], input[type=text]{
       width:100%; padding:10px 12px; border-radius:14px; border:1px solid var(--border2);
       background: transparent; color: var(--fg); outline:none;
     }
@@ -67,11 +66,6 @@
     .status{margin-left:auto; font-size:12px; color: var(--muted)}
     .hint{font-size:12px; color: var(--muted); margin-top:8px}
 
-    .opts{display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border)}
-    @media (min-width: 900px){ .opts{grid-template-columns:1fr 1fr;} }
-    .opt{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:14px; border:1px solid var(--border); background: rgba(127,127,127,0.04)}
-    .opt input{margin-top:3px}
-
     table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px; border:1px solid var(--border); margin-top:10px}
     th, td{padding:10px; border-bottom:1px solid var(--border); font-size:12.5px; text-align:left; vertical-align:top}
     th{font-size:12px; color: var(--muted); font-weight:900}
@@ -79,131 +73,97 @@
 
     .bar{height:10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.08); overflow:hidden}
     .bar > div{height:100%; background: var(--primaryBorder); width:0%}
-
-    .testBadge{margin-left:8px; font-family: var(--mono); font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border2); opacity:0.9}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <div>
-        <h1>Limpador de transcrição (.vtt) → TXT + métricas de fala <span class="testBadge" id="testBadge">tests: …</span></h1>
-        <p class="sub">Gera linhas <span class="kbd">Nome&gt;Texto</span> e calcula tempo por participante com base em <span class="kbd">início → fim</span> de cada cue.</p>
+        <h1>Limpador de transcri&ccedil;&atilde;o (.vtt) &rarr; TXT + m&eacute;tricas de fala</h1>
+        <p class="sub">Gera linhas <span class="kbd">Nome&gt;Texto</span> e calcula tempo por participante com base em <span class="kbd">in&iacute;cio &rarr; fim</span> de cada cue.</p>
+        <p class="sub">Primeira vez? Carregue um .vtt ou cole o conte&uacute;do e clique em Processar.</p>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-        <span class="pill" id="pillTitle">Título: —</span>
-        <span class="pill" id="pillTotal">Duração total: —</span>
-        <span class="pill" id="pillPeople">Participantes: —</span>
+        <span class="pill" id="pillTitle">T&iacute;tulo: &mdash;</span>
+        <span class="pill" id="pillTotal">Dura&ccedil;&atilde;o total: &mdash;</span>
+        <span class="pill" id="pillPeople">Participantes: &mdash;</span>
       </div>
     </div>
 
-    <div class="card">
-      <div class="row cols3">
-        <div>
-          <label for="file">Arquivo .vtt</label>
-          <input id="file" type="file" accept=".vtt,text/vtt,text/plain" />
-          <div class="hint">O título tenta ser extraído do nome do arquivo automaticamente.</div>
+    <div class="stack">
+      <div class="card">
+        <div class="row cols3">
+          <div>
+            <label for="file">Arquivo .vtt</label>
+            <input id="file" type="file" accept=".vtt,text/vtt,text/plain" />
+            <div class="hint">O t&iacute;tulo tenta ser extra&iacute;do do nome do arquivo automaticamente.</div>
+          </div>
+          <div>
+            <label for="meetingDate">Dia da reuni&atilde;o (dd/mm/aa)</label>
+            <input id="meetingDate" type="text" inputmode="numeric" placeholder="dd/mm/aa" />
+          </div>
+          <div>
+            <label for="meetingStart">Hor&aacute;rio de in&iacute;cio (24h)</label>
+            <input id="meetingStart" type="text" inputmode="numeric" placeholder="hh:mm" />
+          </div>
         </div>
-        <div>
-          <label for="meetingDate">Dia da reunião</label>
-          <input id="meetingDate" type="date" />
-        </div>
-        <div>
-          <label for="meetingStart">Horário de início</label>
-          <input id="meetingStart" type="time" step="60" />
+        <div class="row cols2" style="margin-top:10px;">
+          <div>
+            <label for="meetingTitle">T&iacute;tulo da reuni&atilde;o (opcional)</label>
+            <input id="meetingTitle" type="text" placeholder="(se vazio, usa o nome do arquivo)" />
+          </div>
+          <div>
+            <label for="meetingNotes">Observa&ccedil;&otilde;es (opcional)</label>
+            <input id="meetingNotes" type="text" placeholder="ex: Alinhamento comercial" />
+          </div>
         </div>
       </div>
-      <div class="row cols2" style="margin-top:10px;">
-        <div>
-          <label for="meetingTitle">Título da reunião (opcional)</label>
-          <input id="meetingTitle" type="text" placeholder="(se vazio, usa o nome do arquivo)" />
-        </div>
-        <div>
-          <label for="meetingNotes">Observações (opcional)</label>
-          <input id="meetingNotes" type="text" placeholder="ex: Alinhamento comercial" />
-        </div>
-      </div>
-    </div>
 
-    <div class="grid">
       <div class="card">
         <h2>Entrada</h2>
-        <label for="input">Cole aqui o conteúdo do VTT (ou carregue o arquivo acima)</label>
-        <textarea id="input" placeholder="Cole aqui o conteúdo do .vtt..."></textarea>
+        <label for="input">Cole aqui o conte&uacute;do do VTT (ou carregue o arquivo acima)</label>
+        <textarea id="input" placeholder="Cole aqui o conte&uacute;do do .vtt..."></textarea>
         <div class="controls">
           <button class="primary" id="process">Processar</button>
           <button id="clear">Limpar</button>
           <span class="status" id="status">Pronto.</span>
         </div>
-        <div class="opts">
-          <div class="opt">
-            <input id="optJoin" type="checkbox" checked />
-            <div>
-              <div><strong>Unir quebras internas</strong></div>
-              <div class="hint" style="margin:4px 0 0;">Dentro do mesmo cue, junta linhas com espaço.</div>
-            </div>
-          </div>
-          <div class="opt">
-            <input id="optTrim" type="checkbox" checked />
-            <div>
-              <div><strong>Normalizar espaços</strong></div>
-              <div class="hint" style="margin:4px 0 0;">Remove espaços duplicados e aparas nas bordas.</div>
-            </div>
-          </div>
-          <div class="opt">
-            <input id="optRemoveTags" type="checkbox" checked />
-            <div>
-              <div><strong>Remover tags</strong></div>
-              <div class="hint" style="margin:4px 0 0;">Remove <span class="kbd">&lt;v&gt;</span>, <span class="kbd">&lt;c&gt;</span> etc.</div>
-            </div>
-          </div>
-          <div class="opt">
-            <input id="optDropEmpty" type="checkbox" checked />
-            <div>
-              <div><strong>Remover linhas vazias</strong></div>
-              <div class="hint" style="margin:4px 0 0;">Ignora resultados vazios.</div>
-            </div>
-          </div>
+        <div class="hint" style="margin-top:10px;">
+          A limpeza aplica: unir quebras internas, normalizar espa&ccedil;os, remover tags e descartar linhas vazias.
         </div>
       </div>
 
-      <div>
-        <div class="card" style="margin-bottom:14px;">
-          <h2>Saída (TXT limpo)</h2>
-          <label for="output">Resumo + tabela (texto puro) + transcrição</label>
-          <textarea id="output" readonly placeholder="O resultado aparecerá aqui..."></textarea>
-          <div class="controls">
-            <button class="primary" id="copy">Copiar</button>
-            <button id="download">Baixar .txt</button>
-            <span class="status" id="outStatus">—</span>
-          </div>
+      <div class="card">
+        <h2>Sa&iacute;da (TXT limpo)</h2>
+        <label for="output">Resumo + tabela (texto puro) + transcri&ccedil;&atilde;o</label>
+        <textarea id="output" readonly placeholder="O resultado aparecer&aacute; aqui..."></textarea>
+        <div class="controls">
+          <button class="primary" id="copy">Copiar</button>
+          <button id="download">Baixar .txt</button>
+          <span class="status" id="outStatus">&mdash;</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>M&eacute;tricas</h2>
+        <div class="row cols2">
+          <div><div class="pill" id="metaWhen">Data/hora: &mdash;</div></div>
+          <div><div class="pill" id="metaEnd">T&eacute;rmino estimado: &mdash;</div></div>
         </div>
 
-        <div class="card">
-          <h2>Métricas</h2>
-          <div class="row cols2">
-            <div><div class="pill" id="metaWhen">Data/hora: —</div></div>
-            <div><div class="pill" id="metaEnd">Término estimado: —</div></div>
-          </div>
-
-          <table aria-label="Tabela de métricas">
-            <thead>
-              <tr>
-                <th style="width:34%;">Participante</th>
-                <th style="width:16%;">Tempo</th>
-                <th style="width:14%;">% fala</th>
-                <th>Distribuição</th>
-              </tr>
-            </thead>
-            <tbody id="statsBody">
-              <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
-            </tbody>
-          </table>
-
-          <div class="hint" style="margin-top:10px;">
-            Se um cue tiver mais de um <span class="kbd">&lt;v Nome&gt;</span>, o tempo do cue é dividido igualmente entre os participantes únicos desse cue.
-          </div>
-        </div>
+        <table aria-label="Tabela de m&eacute;tricas">
+          <thead>
+            <tr>
+              <th style="width:34%;">Participante</th>
+              <th style="width:16%;">Tempo</th>
+              <th style="width:14%;">% fala</th>
+              <th>Distribui&ccedil;&atilde;o</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody">
+            <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -230,12 +190,6 @@
     const metaEnd = $("metaEnd");
 
     const statsBody = $("statsBody");
-    const testBadge = $("testBadge");
-
-    const optJoin = $("optJoin");
-    const optTrim = $("optTrim");
-    const optRemoveTags = $("optRemoveTags");
-    const optDropEmpty = $("optDropEmpty");
 
     function setStatus(msg) { statusEl.textContent = msg; }
     function setOutStatus(msg) { outStatusEl.textContent = msg; }
@@ -263,7 +217,7 @@
     }
 
     function formatDuration(seconds) {
-      if (!Number.isFinite(seconds) || seconds < 0) return "—";
+      if (!Number.isFinite(seconds) || seconds < 0) return "\u2014";
       const total = Math.round(seconds);
       const hh = Math.floor(total / 3600);
       const mm = Math.floor((total % 3600) / 60);
@@ -279,21 +233,61 @@
       return base;
     }
 
+    function normalizeDateBr(value) {
+      const v = (value || "").trim();
+      if (!v) return null;
+      const m = v.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/);
+      if (!m) return null;
+      const dd = Number(m[1]);
+      const mm = Number(m[2]);
+      let yy = Number(m[3]);
+      if (yy < 100) yy += 2000;
+      if (dd < 1 || dd > 31 || mm < 1 || mm > 12) return null;
+      return { dd, mm, yy };
+    }
+
+    function normalizeTime24(value) {
+      const v = (value || "").trim();
+      if (!v) return null;
+      const m = v.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+      if (!m) return null;
+      return { hh: Number(m[1]), mi: Number(m[2]) };
+    }
+
     function buildMeetingDateTime() {
-      const d = meetingDateEl.value;
-      const t = meetingStartEl.value;
+      const d = normalizeDateBr(meetingDateEl.value);
+      const t = normalizeTime24(meetingStartEl.value);
       if (!d || !t) return null;
-      const dt = new Date(`${d}T${t}:00`);
+      const dt = new Date(d.yy, d.mm - 1, d.dd, t.hh, t.mi, 0, 0);
       return isNaN(dt.getTime()) ? null : dt;
     }
 
+    function formatDateInput(value) {
+      const digits = String(value || "").replace(/\D/g, "").slice(0, 6);
+      if (digits.length <= 2) return digits;
+      if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+    }
+
+    function formatTimeInput(value) {
+      const digits = String(value || "").replace(/\D/g, "").slice(0, 4);
+      if (digits.length <= 2) return digits;
+      return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+    }
+
     function formatLocalDateTime(dt) {
-      if (!(dt instanceof Date) || isNaN(dt.getTime())) return "—";
+      if (!(dt instanceof Date) || isNaN(dt.getTime())) return "\u2014";
       try {
-        // Formato conforme o navegador/OS (locale do usuário)
-        return new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" }).format(dt);
+        return new Intl.DateTimeFormat("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        }).format(dt);
       } catch {
-        return dt.toLocaleString();
+        return dt.toLocaleString("pt-BR");
       }
     }
 
@@ -307,10 +301,10 @@
     }
 
     function parseVtt(raw) {
-      const joinInternal = optJoin.checked;
-      const doTrim = optTrim.checked;
-      const removeTags = optRemoveTags.checked;
-      const dropEmpty = optDropEmpty.checked;
+      const joinInternal = true;
+      const doTrim = true;
+      const removeTags = true;
+      const dropEmpty = true;
 
       const text = (raw || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
       const blocks = text.split(/\n\s*\n+/g);
@@ -327,13 +321,11 @@
         if (/^(NOTE|STYLE|REGION)\b/i.test(first)) continue;
 
         let i = 0;
-        // pula ID do cue se existir
         if (lines[i] && !isTimestampLine(lines[i]) && !/^\d{2}:\d{2}:\d{2}/.test(lines[i]) && !/<v\s+/i.test(lines[i])) {
           i++;
         }
 
         if (!lines[i] || !isTimestampLine(lines[i])) {
-          // fallback textual (sem métricas)
           const payloadFallback = lines.slice(i).filter(l => l.trim().length > 0);
           if (!payloadFallback.length) continue;
           let line = joinInternal ? payloadFallback.join(" ") : payloadFallback.join("\n");
@@ -354,7 +346,6 @@
         if (!payload.length) continue;
         const payloadText = joinInternal ? payload.join(" ") : payload.join("\n");
 
-        // Extrai segmentos <v Nome>...</v>
         const segs = [];
         const re = /<v\s+([^>]+)>([\s\S]*?)<\/v>/gi;
         let match;
@@ -375,13 +366,12 @@
           continue;
         }
 
-        // Fallback "Nome: texto"
         let line = payloadText;
         if (removeTags) line = stripAllTags(line);
         if (doTrim) line = normalizeSpaces(line);
         if (!line && dropEmpty) continue;
 
-        const m2 = line.match(/^(.{2,80}?)[：:]\s*(.+)$/);
+        const m2 = line.match(/^(.{2,80}?)[\uFF1A:]\s*(.+)$/);
         if (m2) {
           const speaker = doTrim ? normalizeSpaces(m2[1]) : m2[1].trim();
           const content = doTrim ? normalizeSpaces(m2[2]) : m2[2].trim();
@@ -416,7 +406,6 @@
         const uniqueNames = Array.from(new Set(speakers.map(s => s.name).filter(Boolean)));
         uniqueNames.forEach(n => presence.add(n));
 
-        // Divide igualmente o tempo do cue entre participantes únicos do cue.
         const share = uniqueNames.length ? dur / uniqueNames.length : 0;
         for (const name of uniqueNames) {
           personSeconds.set(name, (personSeconds.get(name) || 0) + share);
@@ -444,35 +433,35 @@
     function getMeetingTitleParts() {
       const typed = (meetingTitleEl.value || "").trim();
       const inferred = (meetingTitleEl.getAttribute("data-inferred") || "").trim();
-      const title = typed || inferred || "(sem título)";
+      const title = typed || inferred || "(sem t\u00edtulo)";
       const notes = (meetingNotesEl.value || "").trim();
       return { title, notes };
     }
 
     function updateTitlePill() {
       const { title, notes } = getMeetingTitleParts();
-      pillTitle.textContent = notes ? `Título: ${title} • ${notes}` : `Título: ${title}`;
+      const sep = " \u2022 ";
+      pillTitle.textContent = notes ? `T\u00edtulo: ${title}${sep}${notes}` : `T\u00edtulo: ${title}`;
     }
 
     function renderStats(stats) {
-      pillTotal.textContent = `Duração total: ${formatDuration(stats.totalMeeting)}`;
+      pillTotal.textContent = `Dura\u00e7\u00e3o total: ${formatDuration(stats.totalMeeting)}`;
       pillPeople.textContent = `Participantes: ${stats.presence.length}`;
 
       const startDT = buildMeetingDateTime();
       if (startDT) {
         metaWhen.textContent = `Data/hora: ${formatLocalDateTime(startDT)}`;
         const endDT = new Date(startDT.getTime() + Math.round(stats.totalMeeting * 1000));
-        metaEnd.textContent = `Término estimado: ${formatLocalDateTime(endDT)}`;
+        metaEnd.textContent = `T\u00e9rmino estimado: ${formatLocalDateTime(endDT)}`;
       } else {
-        metaWhen.textContent = `Data/hora: —`;
-        metaEnd.textContent = `Término estimado: —`;
+        metaWhen.textContent = "Data/hora: \u2014";
+        metaEnd.textContent = "T\u00e9rmino estimado: \u2014";
       }
 
-      // Evitar injetar HTML do arquivo: só usamos innerHTML com strings controladas.
       statsBody.innerHTML = "";
       if (!stats.rows.length) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="4" style="color: var(--muted);">Nenhum dado de fala encontrado (verifique se o VTT contém timestamps + &lt;v Nome&gt;...&lt;/v&gt;).</td>`;
+        tr.innerHTML = `<td colspan="4" style="color: var(--muted);">Nenhum dado de fala encontrado (verifique se o VTT cont\u00e9m timestamps + &lt;v Nome&gt;...&lt;/v&gt;).</td>`;
         statsBody.appendChild(tr);
         return;
       }
@@ -483,7 +472,6 @@
         const tr = document.createElement("tr");
         const pctStr = `${r.pct.toFixed(1)}%`;
         const w = maxPct > 0 ? (r.pct / maxPct) * 100 : 0;
-        // name é escapado; pctStr e w são números/formatos controlados
         tr.innerHTML = `
           <td><strong>${escapeHtml(r.name)}</strong></td>
           <td>${formatDuration(r.seconds)}</td>
@@ -523,17 +511,18 @@
     function buildPlainTextSummary(stats) {
       const { title, notes } = getMeetingTitleParts();
       const startDT = buildMeetingDateTime();
-      const startStr = startDT ? formatLocalDateTime(startDT) : "—";
+      const startStr = startDT ? formatLocalDateTime(startDT) : "\u2014";
 
-      const participants = (stats.presence || []).join(", ") || "—";
+      const participants = (stats.presence || []).join(", ") || "\u2014";
       const totalMeetingStr = formatDuration(stats.totalMeeting);
       const totalSpeechStr = formatDuration(stats.totalSpeech);
 
       const lines = [];
-      lines.push(`Título: ${title}${notes ? ` (${notes})` : ""}`);
-      lines.push(`Início: ${startStr}`);
+      lines.push(`T\u00edtulo: ${title}`);
+      if (notes) lines.push(`Observa\u00e7\u00f5es: ${notes}`);
+      lines.push(`In\u00edcio: ${startStr}`);
       lines.push(`Participantes (${(stats.presence || []).length}): ${participants}`);
-      lines.push(`Tempo total da reunião: ${totalMeetingStr}`);
+      lines.push(`Tempo total da reuni\u00e3o: ${totalMeetingStr}`);
       lines.push(`Tempo total de fala (estimado): ${totalSpeechStr}`);
       lines.push("");
       lines.push("Fala por participante:");
@@ -544,7 +533,7 @@
     function buildFinalOutput(transcriptCleanText, stats) {
       const summary = buildPlainTextSummary(stats);
       const transcript = (transcriptCleanText || "").trim();
-      return transcript ? `${summary}\n\nTranscrição:\n${transcript}\n` : `${summary}\n`;
+      return transcript ? `${summary}\n\nTranscri\u00e7\u00e3o:\n${transcript}\n` : `${summary}\n`;
     }
 
     async function readFileAsText(file) {
@@ -557,7 +546,6 @@
       updateTitlePill();
     }
 
-    // --- Eventos ---
     fileEl.addEventListener("change", async () => {
       const f = fileEl.files && fileEl.files[0];
       if (!f) return;
@@ -573,40 +561,76 @@
       }
     });
 
-    meetingTitleEl.addEventListener("input", updateTitlePill);
-    meetingNotesEl.addEventListener("input", updateTitlePill);
+    meetingTitleEl.addEventListener("input", () => {
+      updateTitlePill();
+      refreshOutputIfReady();
+    });
+    meetingNotesEl.addEventListener("input", () => {
+      updateTitlePill();
+      refreshOutputIfReady();
+    });
 
     let lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+    let lastCleanText = "";
+    let lastProcessed = false;
 
-    meetingDateEl.addEventListener("change", () => renderStats(lastStats));
-    meetingStartEl.addEventListener("change", () => renderStats(lastStats));
+    function refreshOutputIfReady() {
+      if (!lastProcessed) return;
+      outputEl.value = buildFinalOutput(lastCleanText, lastStats);
+    }
 
-    $("process").addEventListener("click", () => {
+    function reprocessFromInput(options = {}) {
       const raw = inputEl.value || "";
       if (!raw.trim()) {
-        setStatus("Nenhuma entrada para processar.");
+        if (!options.silent) {
+          setStatus("Nenhuma entrada para processar.");
+        }
         outputEl.value = "";
-        setOutStatus("—");
+        setOutStatus("\u2014");
         lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+        lastCleanText = "";
+        lastProcessed = false;
         renderStats(lastStats);
         updateTitlePill();
-        return;
+        return false;
       }
       try {
         const parsed = parseVtt(raw);
         lastStats = computeStats(parsed.cues);
+        lastCleanText = parsed.cleanText || "";
+        lastProcessed = true;
         renderStats(lastStats);
         updateTitlePill();
-
-        outputEl.value = buildFinalOutput(parsed.cleanText, lastStats);
-
-        const count = parsed.cleanText ? parsed.cleanText.split("\n").filter(Boolean).length : 0;
-        setStatus("Processado.");
-        setOutStatus(`${count} linha(s) na transcrição`);
+        outputEl.value = buildFinalOutput(lastCleanText, lastStats);
+        const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
+        if (!options.silent) {
+          setStatus("Processado.");
+        }
+        setOutStatus(`${count} linha(s) na transcri\u00e7\u00e3o`);
+        return true;
       } catch (e) {
         console.error(e);
-        setStatus("Erro ao processar.");
+        if (!options.silent) {
+          setStatus("Erro ao processar.");
+        }
+        return false;
       }
+    }
+
+    meetingDateEl.addEventListener("input", () => {
+      meetingDateEl.value = formatDateInput(meetingDateEl.value);
+      renderStats(lastStats);
+      refreshOutputIfReady();
+    });
+
+    meetingStartEl.addEventListener("input", () => {
+      meetingStartEl.value = formatTimeInput(meetingStartEl.value);
+      renderStats(lastStats);
+      refreshOutputIfReady();
+    });
+
+    $("process").addEventListener("click", () => {
+      reprocessFromInput({ silent: false });
     });
 
     $("clear").addEventListener("click", () => {
@@ -618,10 +642,12 @@
       meetingNotesEl.value = "";
       updateTitlePill();
       setStatus("Pronto.");
-      setOutStatus("—");
-      pillTotal.textContent = "Duração total: —";
-      pillPeople.textContent = "Participantes: —";
+      setOutStatus("\u2014");
+      pillTotal.textContent = "Dura\u00e7\u00e3o total: \u2014";
+      pillPeople.textContent = "Participantes: \u2014";
       lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+      lastCleanText = "";
+      lastProcessed = false;
       renderStats(lastStats);
     });
 
@@ -638,7 +664,7 @@
         outputEl.focus();
         outputEl.select();
         const ok = document.execCommand("copy");
-        setOutStatus(ok ? "Copiado" : "Não foi possível copiar");
+        setOutStatus(ok ? "Copiado" : "N\u00e3o foi poss\u00edvel copiar");
       }
     });
 
@@ -666,63 +692,8 @@
       setOutStatus("Download iniciado");
     });
 
-    // --- Testes (sem libs) ---
-    function assert(cond, msg) {
-      if (!cond) throw new Error(msg || "assert failed");
-    }
-
-    function runTests() {
-      const vttSample = `WEBVTT\n\n00:00:00.000 --> 00:00:02.000\n<v Roberta Fonseca>Não.</v>\n\n00:00:02.000 --> 00:00:06.000\n<v Antonio Schneider>Olá</v>\n\n00:00:06.000 --> 00:00:10.000\n<v Roberta Fonseca>Ok</v><v Antonio Schneider>Ok também</v>\n`;
-
-      // parseTimeToSeconds
-      assert(parseTimeToSeconds("00:00:01.500") === 1.5, "parseTimeToSeconds ms");
-      assert(parseTimeToSeconds("01:00:00") === 3600, "parseTimeToSeconds hh");
-
-      // parseVtt output
-      const parsed = parseVtt(vttSample);
-      assert(parsed.cleanText.includes("Roberta Fonseca>Não."), "cleanText includes speaker line");
-
-      // stats
-      const stats = computeStats(parsed.cues);
-      assert(stats.presence.length === 2, "presence length");
-      assert(Math.round(stats.totalMeeting) === 10, "totalMeeting 10s");
-
-      // cue with 2 speakers split equally: last cue 4s => 2s each
-      const a = stats.rows.find(r => r.name === "Antonio Schneider");
-      const r = stats.rows.find(r => r.name === "Roberta Fonseca");
-      assert(a && r, "rows have both");
-      // Antonio: 4s (cue2) + 2s (shared cue3) = 6s
-      // Roberta: 2s (cue1) + 2s (shared cue3) = 4s
-      assert(Math.round(a.seconds) === 6, "Antonio seconds");
-      assert(Math.round(r.seconds) === 4, "Roberta seconds");
-
-      // plain text summary/table
-      const summary = buildPlainTextSummary(stats);
-      assert(summary.includes("Fala por participante:"), "summary includes table header");
-      assert(summary.includes("Participante"), "table has Participante header");
-
-      return true;
-    }
-
-    function setTestBadge(ok, err) {
-      if (ok) {
-        testBadge.textContent = "tests: ok";
-      } else {
-        testBadge.textContent = "tests: falharam";
-        testBadge.title = err ? String(err) : "";
-      }
-    }
-
-    // Inicial
     updateTitlePill();
     renderStats(lastStats);
-    try {
-      runTests();
-      setTestBadge(true);
-    } catch (e) {
-      console.error("Test failure:", e);
-      setTestBadge(false, e);
-    }
   </script>
 </body>
 </html>

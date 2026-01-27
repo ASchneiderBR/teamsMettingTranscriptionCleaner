@@ -1,5 +1,10 @@
 # Teams Meeting Transcription Cleaner (HTML unico)
 
+![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)
+![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)
+![Edge](https://img.shields.io/badge/Edge-Extension-0078D7?logo=microsoftedge&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Projeto em HTML unico para limpar transcricoes do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso e exibir metricas de fala por participante.
 
 ## O que ele faz (v1)
@@ -41,8 +46,10 @@ Se nao houver `<v Nome>`, o codigo tenta o fallback `Nome: Texto`.
 - **Remover tags** (`<v>`, `<c>`, etc.).
 - **Remover linhas vazias**.
 
-## Privacidade
-Tudo roda localmente no navegador. O arquivo nao e enviado para servidor.
+## Privacidade e execucao local
+- Tudo roda 100% localmente no navegador.
+- Nenhum dado e enviado para servidor (funciona offline).
+- Ideal para publicar no GitHub Pages sem backend.
 
 ## Limitacoes atuais
 - Metricas dependem de timestamps corretos no VTT.
@@ -57,4 +64,3 @@ Tudo roda localmente no navegador. O arquivo nao e enviado para servidor.
 
 ## Desenvolvimento
 Este repo e um HTML unico, sem build. Basta editar `teamsmettingcleaner.html`.
-
