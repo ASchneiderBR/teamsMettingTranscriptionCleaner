@@ -1,25 +1,22 @@
 # Teams Meeting Transcription Cleaner (HTML unico)
 
-![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)
-![Chrome](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=googlechrome&logoColor=white)
-![Edge](https://img.shields.io/badge/Edge-Extension-0078D7?logo=microsoftedge&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Projeto em HTML unico para limpar transcricoes do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso e exibir metricas de fala por participante.
+Projeto em HTML unico para limpar transcricoes do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso, e exibir metricas de fala por participante.
 
 ## O que ele faz (v1)
 - Le um arquivo `.vtt` local ou texto colado.
 - Converte o conteudo para linhas no formato `Nome>Texto`.
 - Remove tags VTT (`<v>`, `<c>` etc.) e normaliza espacos.
 - Calcula tempo de fala por participante com base nos timestamps dos cues.
-- Gera um resumo em texto puro + tabela + transcricao limpa.
+- Gera um resumo em texto puro, tabela, e transcricao limpa.
 - Permite copiar o resultado e baixar um `.txt`.
 - Exibe metricas visuais no proprio HTML.
 
 ## Como usar
 1. Abra `index.html` no navegador.
 2. Carregue um arquivo `.vtt` ou cole o conteudo no campo de entrada.
-3. (Opcional) informe data, horario de inicio, titulo e observacoes.
+3. (Opcional) informe data, horario de inicio, titulo, e observacoes.
 4. Clique em **Processar**.
 5. Copie ou baixe o TXT gerado.
 
@@ -54,7 +51,7 @@ Se nao houver `<v Nome>`, o codigo tenta o fallback `Nome: Texto`.
 ## Limitacoes atuais
 - Metricas dependem de timestamps corretos no VTT.
 - Quando um cue tem mais de um participante, o tempo e dividido igualmente.
-- O titulo e inferido do nome do arquivo caso nao seja informado.
+- O titulo e inferido do nome do arquivo, caso nao seja informado.
 
 ## Roadmap curto (ideias)
 - Suporte a DOC/RTF de transcricoes.
