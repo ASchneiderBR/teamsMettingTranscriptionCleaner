@@ -231,6 +231,26 @@
 
         <div class="metricSection">
           <div class="chartHeader">
+            <div class="chartTitle">Turnos (interven&ccedil;&otilde;es)</div>
+            <div class="chartMeta" id="turnsMeta">&mdash;</div>
+          </div>
+          <table aria-label="Tabela de turnos">
+            <thead>
+              <tr>
+                <th style="width:34%;">Participante</th>
+                <th style="width:16%;">Turnos</th>
+                <th style="width:14%;">% turnos</th>
+                <th>Distribui&ccedil;&atilde;o</th>
+              </tr>
+            </thead>
+            <tbody id="turnsBody">
+              <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="metricSection">
+          <div class="chartHeader">
             <div class="chartTitle">Nuvem de palavras</div>
             <div class="chartMeta" id="wordCloudMeta">&mdash;</div>
           </div>
@@ -276,6 +296,8 @@
     const pillPeople = $("pillPeople");
 
     const statsBody = $("statsBody");
+    const turnsBody = $("turnsBody");
+    const turnsMeta = $("turnsMeta");
     const timelineChart = $("timelineChart");
     const timelineLegend = $("timelineLegend");
     const timelineMeta = $("timelineMeta");
@@ -956,6 +978,7 @@
       let minS = Infinity;
       let maxE = -Infinity;
       const personSeconds = new Map();
+      const personTurns = new Map();
       const presence = new Set();
 
       for (const cue of cues) {
@@ -974,23 +997,43 @@
         for (const name of uniqueNames) {
           personSeconds.set(name, (personSeconds.get(name) || 0) + share);
         }
+        for (const name of uniqueNames) {
+          personTurns.set(name, (personTurns.get(name) || 0) + 1);
+        }
       }
 
       const totalMeeting = (minS !== Infinity && maxE !== -Infinity) ? Math.max(0, maxE - minS) : 0;
       let totalSpeech = 0;
       for (const v of personSeconds.values()) totalSpeech += v;
 
-      const rows = Array.from(personSeconds.entries())
-        .map(([name, seconds]) => ({ name, seconds }))
+      let totalTurns = 0;
+      for (const v of personTurns.values()) totalTurns += v;
+
+      const names = new Set([...personSeconds.keys(), ...personTurns.keys()]);
+      const rows = Array.from(names)
+        .map((name) => ({ name, seconds: personSeconds.get(name) || 0, turns: personTurns.get(name) || 0 }))
         .sort((a, b) => b.seconds - a.seconds);
 
-      for (const r of rows) r.pct = totalSpeech > 0 ? (r.seconds / totalSpeech) * 100 : 0;
+      for (const r of rows) {
+        r.pct = totalSpeech > 0 ? (r.seconds / totalSpeech) * 100 : 0;
+        r.turnPct = totalTurns > 0 ? (r.turns / totalTurns) * 100 : 0;
+      }
+
+      const turnRows = Array.from(names)
+        .map((name) => ({ name, turns: personTurns.get(name) || 0 }))
+        .sort((a, b) => b.turns - a.turns);
+
+      for (const r of turnRows) {
+        r.turnPct = totalTurns > 0 ? (r.turns / totalTurns) * 100 : 0;
+      }
 
       return {
         totalMeeting,
         totalSpeech,
+        totalTurns,
         presence: Array.from(presence).sort((a, b) => a.localeCompare(b, undefined)),
         rows,
+        turnRows,
       };
     }
 
@@ -1033,6 +1076,33 @@
           <td><div class="bar" title="${pctStr}"><div style="width:${w.toFixed(1)}%"></div></div></td>
         `;
         statsBody.appendChild(tr);
+      }
+    }
+
+    function renderTurns(stats) {
+      turnsBody.innerHTML = "";
+      turnsMeta.textContent = stats.totalTurns ? `${stats.totalTurns} turno(s)` : "\u2014";
+
+      if (!stats.turnRows || !stats.turnRows.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" style="color: var(--muted);">Nenhum dado de turnos encontrado.</td>`;
+        turnsBody.appendChild(tr);
+        return;
+      }
+
+      const maxPct = Math.max(...stats.turnRows.map(r => r.turnPct));
+
+      for (const r of stats.turnRows) {
+        const tr = document.createElement("tr");
+        const pctStr = `${r.turnPct.toFixed(1)}%`;
+        const w = maxPct > 0 ? (r.turnPct / maxPct) * 100 : 0;
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(r.name)}</strong></td>
+          <td>${r.turns}</td>
+          <td>${pctStr}</td>
+          <td><div class="bar" title="${pctStr}"><div style="width:${w.toFixed(1)}%"></div></div></td>
+        `;
+        turnsBody.appendChild(tr);
       }
     }
 
@@ -1238,6 +1308,27 @@
       return lines.join("\n");
     }
 
+    function buildPlainTextTurnsTable(stats) {
+      const rows = stats.turnRows || [];
+      const header1 = "Participante";
+      const header2 = "Turnos";
+      const header3 = "% turnos";
+
+      const nameW = Math.min(40, Math.max(header1.length, ...rows.map(r => String(r.name).length)));
+      const turnsW = Math.max(header2.length, ...rows.map(r => String(r.turns).length));
+      const pctW = Math.max(header3.length, ...rows.map(r => `${r.turnPct.toFixed(1)}%`.length));
+
+      const lines = [];
+      lines.push(`${padRight(header1, nameW)}  ${padRight(header2, turnsW)}  ${padRight(header3, pctW)}`);
+      lines.push(`${"-".repeat(nameW)}  ${"-".repeat(turnsW)}  ${"-".repeat(pctW)}`);
+
+      for (const r of rows) {
+        const pct = `${r.turnPct.toFixed(1)}%`;
+        lines.push(`${padRight(r.name, nameW)}  ${padRight(r.turns, turnsW)}  ${padRight(pct, pctW)}`);
+      }
+      return lines.join("\n");
+    }
+
     function buildPlainTextSummary(stats) {
       const { title, notes } = getMeetingTitleParts();
       const startDT = buildMeetingDateTime();
@@ -1254,9 +1345,13 @@
       lines.push(`Participantes (${(stats.presence || []).length}): ${participants}`);
       lines.push(`Tempo total da reuni\u00e3o: ${totalMeetingStr}`);
       lines.push(`Tempo total de fala (estimado): ${totalSpeechStr}`);
+      lines.push(`Total de turnos: ${stats.totalTurns || 0}`);
       lines.push("");
       lines.push("Fala por participante:");
       lines.push(buildPlainTextTable(stats));
+      lines.push("");
+      lines.push("Turnos por participante:");
+      lines.push(buildPlainTextTurnsTable(stats));
       return lines.join("\n");
     }
 
@@ -1324,7 +1419,7 @@
     let activeSource = "vtt";
     let lastDocx = null;
 
-    let lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+    let lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
     let lastCues = [];
     let lastCleanText = "";
     let lastProcessed = false;
@@ -1343,11 +1438,12 @@
         }
         outputEl.value = "";
         setOutStatus("\u2014");
-        lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+        lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
+        renderTurns(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1360,6 +1456,7 @@
         lastCleanText = parsed.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
+        renderTurns(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1388,11 +1485,12 @@
         logDebug("DOCX sem segmentos para processar", { hasDocx: !!lastDocx, segments: lastDocx && lastDocx.segments ? lastDocx.segments.length : 0 });
         outputEl.value = "";
         setOutStatus("\u2014");
-        lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+        lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
+        renderTurns(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1405,6 +1503,7 @@
         lastCleanText = lastDocx.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
+        renderTurns(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1434,12 +1533,14 @@
     meetingDateEl.addEventListener("input", () => {
       meetingDateEl.value = formatDateInput(meetingDateEl.value);
       renderStats(lastStats);
+      renderTurns(lastStats);
       refreshOutputIfReady();
     });
 
     meetingStartEl.addEventListener("input", () => {
       meetingStartEl.value = formatTimeInput(meetingStartEl.value);
       renderStats(lastStats);
+      renderTurns(lastStats);
       refreshOutputIfReady();
     });
 
@@ -1461,11 +1562,12 @@
       pillPeople.textContent = "Participantes: \u2014";
       activeSource = "vtt";
       lastDocx = null;
-      lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+      lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
       lastCues = [];
       lastCleanText = "";
       lastProcessed = false;
       renderStats(lastStats);
+      renderTurns(lastStats);
       renderWordCloud(lastCues, lastCleanText);
       renderTimeline(lastCues, lastStats);
     });
@@ -1513,6 +1615,7 @@
 
     updateTitlePill();
     renderStats(lastStats);
+    renderTurns(lastStats);
     renderWordCloud(lastCues, lastCleanText);
     renderTimeline(lastCues, lastStats);
   </script>

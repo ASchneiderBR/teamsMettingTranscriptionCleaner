@@ -14,6 +14,7 @@ Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCle
 - Calcula tempo de fala por participante:
   - VTT: usa timestamps dos cues.
   - DOCX: estima pela contagem de caracteres.
+- Calcula turnos (número de intervenções e % de turnos) por participante.
 - Gera um resumo em texto puro, tabela e transcrição limpa.
 - Permite copiar o resultado e baixar um `.txt`.
 - Exibe métricas visuais no próprio HTML.
@@ -50,6 +51,7 @@ Texto...
 ## Saída gerada
 - **Resumo** com título, data/hora, participantes e tempos.
 - **Tabela em texto** (participante, tempo, % fala).
+- **Tabela em texto de turnos** (participante, turnos, % turnos).
 - **Transcrição limpa** no formato `Nome>Texto`.
 
 ## Opções do processamento
