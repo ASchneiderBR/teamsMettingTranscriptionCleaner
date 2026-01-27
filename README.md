@@ -4,7 +4,7 @@
 
 Projeto em HTML único para limpar transcrições do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso e exibir métricas de fala por participante.
 
-Demo (GitHub Pages): `https://aschneiderbr.github.io/teamsMettingTranscriptionCleaner/`
+Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCleaner/
 
 ## O que ele faz (v1)
 - Lê um arquivo `.vtt` local ou texto colado.
