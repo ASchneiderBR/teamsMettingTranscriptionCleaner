@@ -79,13 +79,13 @@
     .chartTitle{font-size:13px; font-weight:900}
     .chartMeta{font-size:12px; color: var(--muted)}
     .chartGrid{
-      height:220px; display:flex; align-items:flex-end; gap:2px; padding:8px 6px;
+      height:220px; display:flex; align-items:stretch; gap:2px; padding:8px 6px;
       border:1px solid var(--border); border-radius:14px;
       background: linear-gradient(to top, rgba(127,127,127,0.12) 1px, transparent 1px);
       background-size: 100% 25%;
     }
-    .chartBar{flex:1 1 0; display:flex; flex-direction:column-reverse; min-width:2px}
-    .chartSeg{width:100%}
+    .chartBar{flex:1 1 0; display:flex; flex-direction:column-reverse; min-width:2px; height:100%}
+    .chartSeg{width:100%; min-height:1px}
     .chartAxis{display:flex; justify-content:space-between; font-size:12px; color: var(--muted); margin-top:6px}
     .legend{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:8px}
     .legendItem{display:flex; align-items:center; gap:6px; font-size:12px; color: var(--muted)}
