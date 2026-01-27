@@ -1,22 +1,24 @@
-# Teams Meeting Transcription Cleaner (HTML unico)
+# Teams Meeting Transcription Cleaner (HTML único)
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Projeto em HTML unico para limpar transcricoes do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso, e exibir metricas de fala por participante.
+Projeto em HTML único para limpar transcrições do Microsoft Teams em `.vtt`, gerar um TXT pronto para uso e exibir métricas de fala por participante.
+
+Demo (GitHub Pages): `https://aschneiderbr.github.io/teamsMettingTranscriptionCleaner/`
 
 ## O que ele faz (v1)
-- Le um arquivo `.vtt` local ou texto colado.
-- Converte o conteudo para linhas no formato `Nome>Texto`.
-- Remove tags VTT (`<v>`, `<c>` etc.) e normaliza espacos.
+- Lê um arquivo `.vtt` local ou texto colado.
+- Converte o conteúdo para linhas no formato `Nome>Texto`.
+- Remove tags VTT (`<v>`, `<c>` etc.) e normaliza espaços.
 - Calcula tempo de fala por participante com base nos timestamps dos cues.
-- Gera um resumo em texto puro, tabela, e transcricao limpa.
+- Gera um resumo em texto puro, tabela e transcrição limpa.
 - Permite copiar o resultado e baixar um `.txt`.
-- Exibe metricas visuais no proprio HTML.
+- Exibe métricas visuais no próprio HTML.
 
 ## Como usar
 1. Abra `index.html` no navegador.
-2. Carregue um arquivo `.vtt` ou cole o conteudo no campo de entrada.
-3. (Opcional) informe data, horario de inicio, titulo, e observacoes.
+2. Carregue um arquivo `.vtt` ou cole o conteúdo no campo de entrada.
+3. (Opcional) informe data, horário de início, título e observações.
 4. Clique em **Processar**.
 5. Copie ou baixe o TXT gerado.
 
@@ -35,29 +37,29 @@ Se nao houver `<v Nome>`, o codigo tenta o fallback `Nome: Texto`.
 ## Saida gerada
 - **Resumo** com titulo, data/hora, participantes e tempos.
 - **Tabela em texto** (participante, tempo, % fala).
-- **Transcricao limpa** no formato `Nome>Texto`.
+- **Transcrição limpa** no formato `Nome>Texto`.
 
-## Opcoes do processamento
+## Opções do processamento
 - **Unir quebras internas** dentro do mesmo cue.
-- **Normalizar espacos** (remove duplicados e aparas).
+- **Normalizar espaços** (remove duplicados e aparas).
 - **Remover tags** (`<v>`, `<c>`, etc.).
 - **Remover linhas vazias**.
 
-## Privacidade e execucao local
+## Privacidade e execução local
 - Tudo roda 100% localmente no navegador.
-- Nenhum dado e enviado para servidor (funciona offline).
+- Nenhum dado é enviado para servidor (funciona offline).
 - Ideal para publicar no GitHub Pages sem backend.
 
-## Limitacoes atuais
-- Metricas dependem de timestamps corretos no VTT.
-- Quando um cue tem mais de um participante, o tempo e dividido igualmente.
-- O titulo e inferido do nome do arquivo, caso nao seja informado.
+## Limitações atuais
+- Métricas dependem de timestamps corretos no VTT.
+- Quando um cue tem mais de um participante, o tempo é dividido igualmente.
+- O título é inferido do nome do arquivo, caso não seja informado.
 
 ## Roadmap curto (ideias)
-- Suporte a DOC/RTF de transcricoes.
+- Suporte a DOC/RTF de transcrições.
 - Ajustes finos para VTTs com formatos diferentes do Teams.
-- Mais visualizacoes de metricas.
-- Exportar CSV das metricas.
+- Mais visualizações de métricas.
+- Exportar CSV das métricas.
 
 ## Desenvolvimento
-Este repo e um HTML unico, sem build. Basta editar `index.html`.
+Este repo é um HTML único, sem build. Basta editar `index.html`.
