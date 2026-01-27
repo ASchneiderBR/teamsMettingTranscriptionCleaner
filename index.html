@@ -4,77 +4,193 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Limpador VTT/DOCX &rarr; TXT + M&eacute;tricas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
       color-scheme: light dark;
-      --bg:#ffffff; --fg:#0b0f14; --muted: rgba(15, 23, 42, 0.72);
-      --card: rgba(2, 6, 23, 0.04); --border: rgba(2, 6, 23, 0.16); --border2: rgba(2, 6, 23, 0.24);
-      --btn: rgba(2, 6, 23, 0.06); --btnBorder: rgba(2, 6, 23, 0.18);
-      --primary: rgba(37, 99, 235, 0.18); --primaryBorder: rgba(37, 99, 235, 0.45);
-      --shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
-      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --page: linear-gradient(180deg, #f4f6fb 0%, #e9eef7 100%);
+      --bg:#f4f6fb; --fg:#0f172a; --muted:#586274;
+      --card:#ffffff; --border:#e0e6ef; --border2:#cfd6e2;
+      --field: rgba(15, 23, 42, 0.04);
+      --btn:#eef2f8; --btnBorder:#c6cfdd;
+      --primary:#5b5fc7; --primaryBorder:#4b4fb1; --primaryText:#ffffff;
+      --success:#22c55e; --warning:#f59e0b;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      --shadowSoft: 0 8px 20px rgba(15, 23, 42, 0.08);
+      --sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --r: 16px;
+      --r: 18px;
+    }
+    :root[data-theme="dark"]{
+      --page: linear-gradient(180deg, #0b1220 0%, #0a0f1a 100%);
+      --bg:#0b1220; --fg:#e5e7eb; --muted:#9aa3b2;
+      --card:#121826; --border:#273043; --border2:#3b4661;
+      --field: rgba(255, 255, 255, 0.05);
+      --btn:#1b2433; --btnBorder:#2f3a52;
+      --primary:#6d6ff0; --primaryBorder:#8486ff; --primaryText:#f8fafc;
+      --success:#34d399; --warning:#fbbf24;
+      --shadow: 0 16px 40px rgba(0,0,0,0.4);
+      --shadowSoft: 0 10px 24px rgba(0,0,0,0.3);
     }
     @media (prefers-color-scheme: dark){
-      :root{
-        --bg:#0b0f14; --fg:#e5e7eb; --muted: rgba(229, 231, 235, 0.74);
-        --card: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.14); --border2: rgba(255,255,255,0.22);
-        --btn: rgba(255,255,255,0.06); --btnBorder: rgba(255,255,255,0.16);
-        --primary: rgba(96, 165, 250, 0.18); --primaryBorder: rgba(96, 165, 250, 0.45);
-        --shadow: 0 10px 28px rgba(0,0,0,0.35);
+      :root:not([data-theme="light"]){
+        --page: linear-gradient(180deg, #0b1220 0%, #0a0f1a 100%);
+        --bg:#0b1220; --fg:#e5e7eb; --muted:#9aa3b2;
+        --card:#121826; --border:#273043; --border2:#3b4661;
+        --field: rgba(255, 255, 255, 0.05);
+        --btn:#1b2433; --btnBorder:#2f3a52;
+        --primary:#6d6ff0; --primaryBorder:#8486ff; --primaryText:#f8fafc;
+        --success:#34d399; --warning:#fbbf24;
+        --shadow: 0 16px 40px rgba(0,0,0,0.4);
+        --shadowSoft: 0 10px 24px rgba(0,0,0,0.3);
       }
     }
     *{box-sizing:border-box}
-    body{margin:0; padding:22px; font-family: var(--sans); line-height:1.35; background: var(--bg); color: var(--fg)}
-    .wrap{max-width: 900px; margin:0 auto}
+    body{margin:0; padding:28px; font-family: var(--sans); font-size:14px; line-height:1.5; background: transparent; color: var(--fg); position: relative; overflow-x:hidden}
+    body::before{
+      content:"";
+      position: fixed;
+      inset:0;
+      background: var(--page);
+      z-index:-1;
+    }
+    .wrap{max-width: 1120px; margin:0 auto}
 
-    .top{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:baseline; justify-content:space-between; margin-bottom:12px}
-    h1{font-size:18px; margin:0; letter-spacing:0.2px}
+    .top{display:flex; flex-direction:column; gap:10px; margin-bottom:16px}
+    h1{font-size:20px; margin:0; letter-spacing:0.2px}
     .sub{margin:0; font-size:13px; color:var(--muted)}
 
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.06); font-size:12px; color: var(--muted); white-space:nowrap}
+    .topHeading{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px}
+    .topHeading h1{flex:1 1 320px}
+    .topHeading button{flex-shrink:0}
+    .topDesc{display:flex; flex-direction:column; gap:4px}
+    .pillGroup{display:flex; gap:8px; flex-wrap:wrap}
+
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background: rgba(91, 95, 199, 0.08); font-size:12px; color: var(--muted); white-space:nowrap}
     .kbd{font-family: var(--mono); border:1px solid var(--border2); border-bottom-width:2px; padding:1px 6px; border-radius:9px; font-size:12px; opacity:0.95}
 
-    .stack{display:flex; flex-direction:column; gap:14px; margin-top:14px}
+    .stack{display:flex; flex-direction:column; gap:18px; margin-top:16px}
+    .mainGrid{
+      display:grid;
+      gap:18px;
+      grid-template-columns: 1fr;
+    }
+    .colStack{display:flex; flex-direction:column; gap:18px}
+    @media (min-width: 980px){
+      .mainGrid{
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items:start;
+      }
+    }
 
-    .card{border:1px solid var(--border); border-radius: var(--r); padding:14px; background: var(--card); box-shadow: var(--shadow)}
-    .card h2{font-size:14px; margin:0 0 10px; opacity:0.95}
+    .card{border:1px solid var(--border); border-radius: var(--r); padding:18px; background: var(--card); box-shadow: var(--shadow)}
+    .card h2{font-size:15px; margin:0 0 12px; opacity:0.95}
 
-    .row{display:grid; grid-template-columns: 1fr; gap:10px}
+    .row{display:grid; grid-template-columns: 1fr; gap:12px}
     @media (min-width: 720px){
       .row.cols2{grid-template-columns: 1fr 1fr}
       .row.cols3{grid-template-columns: 1fr 1fr 1fr}
     }
 
-    label{display:block; font-weight:800; font-size:12px; margin:0 0 6px; opacity:0.92}
+    label{display:block; font-weight:600; font-size:12px; margin:0 0 6px; opacity:0.92}
     input[type=file], input[type=text]{
-      width:100%; padding:10px 12px; border-radius:14px; border:1px solid var(--border2);
-      background: transparent; color: var(--fg); outline:none;
+      width:100%; padding:11px 12px; border-radius:12px; border:1px solid var(--border2);
+      background: var(--field); color: var(--fg); outline:none;
     }
 
     textarea{
-      width:100%; min-height:240px; padding:12px; border-radius:14px; border:1px solid var(--border2);
-      background: transparent; color: var(--fg); outline:none;
+      width:100%; min-height:240px; padding:12px; border-radius:12px; border:1px solid var(--border2);
+      background: var(--field); color: var(--fg); outline:none;
       font-family: var(--mono); font-size:12.5px; resize: vertical;
     }
 
-    .controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px}
-    button{border:1px solid var(--btnBorder); background: var(--btn); color: var(--fg); padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:800}
-    button.primary{background: var(--primary); border-color: var(--primaryBorder)}
+    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px}
+    button{border:1px solid var(--btnBorder); background: var(--btn); color: var(--fg); padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700; transition: transform 0.12s ease, box-shadow 0.2s ease}
+    button.primary{background: var(--primary); border-color: var(--primaryBorder); color: var(--primaryText); box-shadow: 0 10px 18px rgba(91, 95, 199, 0.25)}
+    button.ghost{background: transparent; border-color: var(--border2); box-shadow:none}
     button:active{transform: translateY(1px)}
-    .status{margin-left:auto; font-size:12px; color: var(--muted)}
+    .status{margin-left:auto; font-size:12px; color: var(--muted); font-weight:600}
+    .status.success{color: var(--success)}
+    .status.warn{color: var(--warning)}
+    .status.muted{color: var(--muted)}
     .hint{font-size:12px; color: var(--muted); margin-top:8px}
 
+    .dropzone{
+      border:1.5px dashed var(--border2);
+      border-radius:12px;
+      padding:14px 16px;
+      background: rgba(91, 95, 199, 0.06);
+      color: var(--muted);
+      cursor:pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .dropzoneText{display:flex; flex-direction:column; gap:2px}
+    .dropzone .dropTitle{font-weight:700; color: var(--fg); font-size:13px}
+    .dropzone .dropHint{font-size:12px}
+    .dropzoneActions{display:flex; align-items:center; gap:8px}
+    .dropzone.dragover{
+      border-color: var(--primaryBorder);
+      background: rgba(91, 95, 199, 0.14);
+      color: var(--fg);
+    }
+    .card.dragover{
+      border-color: var(--primaryBorder);
+      box-shadow: 0 0 0 2px rgba(91, 95, 199, 0.15), var(--shadow);
+    }
+    .dropzone:focus-visible{
+      outline: 2px solid var(--primaryBorder);
+      outline-offset: 2px;
+    }
+    @media (max-width: 560px){
+      .dropzone{flex-direction:column; align-items:flex-start}
+      .dropzoneActions{width:100%}
+      .dropzoneActions button{width:100%}
+    }
+    .dropMeta{margin-top:6px; font-size:12px; color: var(--muted)}
+    .visuallyHidden{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space:nowrap;
+      border:0;
+    }
+
     table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px; border:1px solid var(--border); margin-top:10px}
+    .metricsTable{table-layout: fixed}
+    .metricsTable th:nth-child(2), .metricsTable td:nth-child(2){min-width:72px}
+    .metricsTable th:nth-child(3), .metricsTable td:nth-child(3){min-width:64px}
     th, td{padding:10px; border-bottom:1px solid var(--border); font-size:12.5px; text-align:left; vertical-align:top}
-    th{font-size:12px; color: var(--muted); font-weight:900}
+    th{font-size:12px; color: var(--muted); font-weight:900; white-space:nowrap}
     tr:last-child td{border-bottom:none}
 
     .bar{height:10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.08); overflow:hidden}
     .bar > div{height:100%; background: var(--primaryBorder); width:0%}
 
-    .metricSection{margin-top:14px}
+    .metricsSticky{
+      position: sticky;
+      top: 16px;
+      z-index: 3;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background: var(--card);
+      box-shadow: var(--shadowSoft);
+      margin-bottom:14px;
+    }
+    .metricsStickyTitle{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color: var(--muted); margin-bottom:6px}
+    .metricsPills{display:flex; flex-wrap:wrap; gap:8px}
+
+    .metricSection{margin-top:16px}
     .metricSection:first-of-type{margin-top:10px}
     .metricSection table{margin-top:0}
     .chartHeader{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px}
@@ -92,7 +208,8 @@
     .legend{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:8px}
     .legendItem{display:flex; align-items:center; gap:6px; font-size:12px; color: var(--muted)}
     .legendSwatch{width:12px; height:12px; border-radius:3px; border:1px solid var(--border)}
-    .chartEmpty{display:flex; align-items:center; justify-content:center; font-size:12px; color: var(--muted)}
+    .chartEmpty{display:flex; align-items:center; justify-content:center; font-size:12.5px; color: var(--muted); font-weight:600}
+    .emptyState{font-size:12.5px; color: var(--muted); font-weight:600}
     .wordCloud{
       height:320px; padding:12px 14px; border:1px solid var(--border); border-radius:14px;
       background:
@@ -100,6 +217,7 @@
         radial-gradient(circle at 80% 70%, rgba(127,127,127,0.08), transparent 60%);
       text-align:center;
     }
+    .wordCloud.chartEmpty{color: var(--muted); font-size:12.5px}
 
     /* jQCloud styles */
     div.jqcloud { font-size: 13px; line-height: normal; overflow: hidden; position: relative; margin: 0; }
@@ -137,141 +255,178 @@
     div.jqcloud span.c10 { color: #3D5A68; }
     div.jqcloud span:hover { color: #0099B2; }
     div.jqcloud span { padding: 0; }
+    div.jqcloud.wordCloud.chartEmpty { color: var(--muted); font-size:12.5px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <div>
+      <div class="topHeading">
         <h1>Limpador de transcri&ccedil;&atilde;o (.vtt/.docx) &rarr; TXT + m&eacute;tricas de fala</h1>
+        <button class="ghost" id="themeToggle" type="button" aria-pressed="false">Modo escuro</button>
+      </div>
+      <div class="topDesc">
         <p class="sub">Gera linhas <span class="kbd">Nome&gt;Texto</span> e calcula tempo por participante. Para DOCX, o tempo &eacute; estimado.</p>
         <p class="sub">Primeira vez? Carregue um .vtt ou .docx (ou cole VTT) e clique em Processar.</p>
       </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="pillGroup">
         <span class="pill" id="pillTitle">T&iacute;tulo: &mdash;</span>
-        <span class="pill" id="pillTotal">Dura&ccedil;&atilde;o total: &mdash;</span>
-        <span class="pill" id="pillPeople">Participantes: &mdash;</span>
+        <span class="pill" id="pillTotal">Dura&ccedil;&atilde;o total: Sem dados</span>
+        <span class="pill" id="pillPeople">Participantes: Sem dados</span>
       </div>
     </div>
 
-    <div class="stack">
-      <div class="card">
-        <div class="row cols3">
+    <div class="stack mainGrid">
+      <div class="colStack">
+        <div class="card" id="cardConfig">
+          <h2>Arquivo</h2>
           <div>
             <label for="file">Arquivo .vtt ou .docx</label>
-            <input id="file" type="file" accept=".vtt,.docx,text/vtt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-            <div class="hint">O t&iacute;tulo tenta ser extra&iacute;do do nome do arquivo automaticamente.</div>
+            <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Arraste e solte no card inteiro ou clique para selecionar">
+              <div class="dropzoneText">
+                  <div class="dropTitle">Arraste e solte no card inteiro para carregar</div>
+                <div class="dropHint">ou selecione um arquivo .vtt/.docx</div>
+              </div>
+              <div class="dropzoneActions">
+                <button class="primary" id="pickFile" type="button">Selecionar arquivo</button>
+              </div>
+            </div>
+            <input class="visuallyHidden" id="file" type="file" accept=".vtt,.docx,text/vtt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+            <div class="dropMeta" id="dropMeta">Nenhum arquivo selecionado</div>
           </div>
-          <div>
-            <label for="meetingDate">Dia da reuni&atilde;o (dd/mm/aa)</label>
-            <input id="meetingDate" type="text" inputmode="numeric" placeholder="dd/mm/aa" />
+          <div class="row cols3" style="margin-top:12px;">
+            <div>
+              <label for="meetingDate">Dia da reuni&atilde;o (dd/mm/aa)</label>
+              <input id="meetingDate" type="text" inputmode="numeric" placeholder="dd/mm/aa" />
+            </div>
+            <div>
+              <label for="meetingStart">Hor&aacute;rio de in&iacute;cio (24h)</label>
+              <input id="meetingStart" type="text" inputmode="numeric" placeholder="hh:mm" />
+            </div>
+            <div>
+              <label for="meetingTitle">T&iacute;tulo da reuni&atilde;o (opcional)</label>
+              <input id="meetingTitle" type="text" placeholder="(se vazio, usa o nome do arquivo)" />
+            </div>
           </div>
-          <div>
-            <label for="meetingStart">Hor&aacute;rio de in&iacute;cio (24h)</label>
-            <input id="meetingStart" type="text" inputmode="numeric" placeholder="hh:mm" />
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label for="meetingNotes">Observa&ccedil;&otilde;es (opcional)</label>
+              <input id="meetingNotes" type="text" placeholder="ex: Alinhamento comercial" />
+            </div>
           </div>
         </div>
-        <div class="row cols2" style="margin-top:10px;">
-          <div>
-            <label for="meetingTitle">T&iacute;tulo da reuni&atilde;o (opcional)</label>
-            <input id="meetingTitle" type="text" placeholder="(se vazio, usa o nome do arquivo)" />
+
+        <div class="card" id="cardInput">
+          <h2>Entrada</h2>
+          <label for="input">Cole aqui o conte&uacute;do do VTT (ou carregue .vtt/.docx acima)</label>
+          <textarea id="input" placeholder="Cole aqui o conte&uacute;do do .vtt..."></textarea>
+          <div class="controls">
+            <button class="primary" id="process">Processar</button>
+            <button id="clear">Limpar</button>
+            <span class="status" id="status">Pronto.</span>
           </div>
-          <div>
-            <label for="meetingNotes">Observa&ccedil;&otilde;es (opcional)</label>
-            <input id="meetingNotes" type="text" placeholder="ex: Alinhamento comercial" />
+          <div class="hint" style="margin-top:10px;">
+            A limpeza aplica: unir quebras internas, normalizar espa&ccedil;os, remover tags e descartar linhas vazias. Para DOCX, o tempo &eacute; estimado.
           </div>
         </div>
       </div>
 
-      <div class="card">
-        <h2>Entrada</h2>
-        <label for="input">Cole aqui o conte&uacute;do do VTT (ou carregue .vtt/.docx acima)</label>
-        <textarea id="input" placeholder="Cole aqui o conte&uacute;do do .vtt..."></textarea>
-        <div class="controls">
-          <button class="primary" id="process">Processar</button>
-          <button id="clear">Limpar</button>
-          <span class="status" id="status">Pronto.</span>
-        </div>
-        <div class="hint" style="margin-top:10px;">
-          A limpeza aplica: unir quebras internas, normalizar espa&ccedil;os, remover tags e descartar linhas vazias. Para DOCX, o tempo &eacute; estimado.
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Sa&iacute;da (TXT limpo)</h2>
-        <label for="output">Resumo + tabela (texto puro) + transcri&ccedil;&atilde;o</label>
-        <textarea id="output" readonly placeholder="O resultado aparecer&aacute; aqui..."></textarea>
-        <div class="controls">
-          <button class="primary" id="copy">Copiar</button>
-          <button id="download">Baixar .txt</button>
-          <span class="status" id="outStatus">&mdash;</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>M&eacute;tricas</h2>
-        <div class="metricSection">
-          <div class="chartHeader">
-            <div class="chartTitle">Tempo de fala</div>
-          </div>
-          <table aria-label="Tabela de m&eacute;tricas">
-            <thead>
-              <tr>
-                <th style="width:34%;">Participante</th>
-                <th style="width:16%;">Tempo</th>
-                <th style="width:14%;">% fala</th>
-                <th>Distribui&ccedil;&atilde;o</th>
-              </tr>
-            </thead>
-            <tbody id="statsBody">
-              <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="metricSection">
-          <div class="chartHeader">
-            <div class="chartTitle">Turnos (interven&ccedil;&otilde;es)</div>
-            <div class="chartMeta" id="turnsMeta">&mdash;</div>
-          </div>
-          <table aria-label="Tabela de turnos">
-            <thead>
-              <tr>
-                <th style="width:34%;">Participante</th>
-                <th style="width:16%;">Turnos</th>
-                <th style="width:14%;">% turnos</th>
-                <th>Distribui&ccedil;&atilde;o</th>
-              </tr>
-            </thead>
-            <tbody id="turnsBody">
-              <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="metricSection">
-          <div class="chartHeader">
-            <div class="chartTitle">Nuvem de palavras</div>
-            <div class="chartMeta" id="wordCloudMeta">&mdash;</div>
-          </div>
-          <div class="wordCloud jqcloud chartEmpty" id="wordCloud" role="img" aria-label="Nuvem de palavras">
-            Sem palavras suficientes para a nuvem.
+      <div class="colStack">
+        <div class="card" id="cardOutput">
+          <h2>Sa&iacute;da (TXT limpo)</h2>
+          <label for="output">Resumo + tabela (texto puro) + transcri&ccedil;&atilde;o</label>
+          <textarea id="output" readonly placeholder="O resultado aparecer&aacute; aqui..."></textarea>
+          <div class="controls">
+            <button class="primary" id="copy">Copiar</button>
+            <button id="download">Baixar .txt</button>
+            <span class="status" id="outStatus">&mdash;</span>
           </div>
         </div>
 
-        <div class="metricSection">
-          <div class="chartHeader">
-            <div class="chartTitle">Fala ao longo do tempo</div>
-            <div class="chartMeta" id="timelineMeta">&mdash;</div>
+        <div class="card" id="cardMetrics">
+          <h2>M&eacute;tricas</h2>
+          <div class="metricsSticky" id="metricsSticky">
+            <div class="metricsStickyTitle">Resumo</div>
+            <div class="metricsPills">
+              <span class="pill" id="pillTotalSticky">Dura&ccedil;&atilde;o total: Sem dados</span>
+              <span class="pill" id="pillPeopleSticky">Participantes: Sem dados</span>
+            </div>
           </div>
-          <div class="chartGrid chartEmpty" id="timelineChart" role="img" aria-label="Fala ao longo do tempo">
-            Sem dados suficientes para o gr&aacute;fico.
+          <div class="metricSection">
+            <div class="chartHeader">
+              <div class="chartTitle">Tempo de fala</div>
+            </div>
+            <table class="metricsTable" aria-label="Tabela de m&eacute;tricas">
+              <colgroup>
+                <col style="width:36%">
+                <col style="width:20%">
+                <col style="width:16%">
+                <col>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Participante</th>
+                  <th>Tempo</th>
+                  <th>% fala</th>
+                  <th>Distribui&ccedil;&atilde;o</th>
+                </tr>
+              </thead>
+              <tbody id="statsBody">
+                <tr><td colspan="4" class="emptyState">Sem dados</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div class="chartAxis">
-            <span id="timelineStart">In&iacute;cio</span>
-            <span id="timelineEnd">Fim</span>
+
+          <div class="metricSection">
+            <div class="chartHeader">
+              <div class="chartTitle">Turnos (interven&ccedil;&otilde;es)</div>
+              <div class="chartMeta" id="turnsMeta">Sem dados</div>
+            </div>
+            <table class="metricsTable" aria-label="Tabela de turnos">
+              <colgroup>
+                <col style="width:36%">
+                <col style="width:18%">
+                <col style="width:16%">
+                <col>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Participante</th>
+                  <th>Turnos</th>
+                  <th>% turnos</th>
+                  <th>Distribui&ccedil;&atilde;o</th>
+                </tr>
+              </thead>
+              <tbody id="turnsBody">
+                <tr><td colspan="4" class="emptyState">Sem dados</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div class="legend" id="timelineLegend"></div>
+
+          <div class="metricSection">
+            <div class="chartHeader">
+              <div class="chartTitle">Nuvem de palavras</div>
+              <div class="chartMeta" id="wordCloudMeta">Sem dados</div>
+            </div>
+            <div class="wordCloud jqcloud chartEmpty" id="wordCloud" role="img" aria-label="Nuvem de palavras">
+              Sem dados
+            </div>
+          </div>
+
+          <div class="metricSection">
+            <div class="chartHeader">
+              <div class="chartTitle">Fala ao longo do tempo</div>
+              <div class="chartMeta" id="timelineMeta">Sem dados</div>
+            </div>
+            <div class="chartGrid chartEmpty" id="timelineChart" role="img" aria-label="Fala ao longo do tempo">
+              Sem dados
+            </div>
+            <div class="chartAxis">
+              <span id="timelineStart">In&iacute;cio</span>
+              <span id="timelineEnd">Fim</span>
+            </div>
+            <div class="legend" id="timelineLegend"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -280,7 +435,12 @@
   <script>
     const $ = (id) => document.getElementById(id);
 
+    const themeToggle = $("themeToggle");
     const fileEl = $("file");
+    const dropzone = $("dropzone");
+    const dropMeta = $("dropMeta");
+    const pickFile = $("pickFile");
+    const configCard = $("cardConfig");
     const inputEl = $("input");
     const outputEl = $("output");
     const statusEl = $("status");
@@ -294,6 +454,8 @@
     const pillTitle = $("pillTitle");
     const pillTotal = $("pillTotal");
     const pillPeople = $("pillPeople");
+    const pillTotalSticky = $("pillTotalSticky");
+    const pillPeopleSticky = $("pillPeopleSticky");
 
     const statsBody = $("statsBody");
     const turnsBody = $("turnsBody");
@@ -306,9 +468,51 @@
     const wordCloud = $("wordCloud");
     const wordCloudMeta = $("wordCloudMeta");
 
-    function setStatus(msg) { statusEl.textContent = msg; }
-    function setOutStatus(msg) { outStatusEl.textContent = msg; }
+    const EMPTY_METRICS_TEXT = "Sem dados";
+
+    function setStatus(msg, tone = "muted") {
+      statusEl.textContent = msg;
+      statusEl.className = `status ${tone}`;
+    }
+    function setOutStatus(msg, tone = "muted") {
+      outStatusEl.textContent = msg;
+      outStatusEl.className = `status ${tone}`;
+    }
     function logDebug(...args) { console.log("[debug]", ...args); }
+
+    const THEME_KEY = "tmtc-theme";
+
+    function getSystemPrefersDark() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    function setThemeToggleLabel(isDark) {
+      if (!themeToggle) return;
+      themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+    }
+
+    function applyTheme(theme) {
+      if (theme === "dark" || theme === "light") {
+        document.documentElement.setAttribute("data-theme", theme);
+        setThemeToggleLabel(theme === "dark");
+        return;
+      }
+      document.documentElement.removeAttribute("data-theme");
+      setThemeToggleLabel(getSystemPrefersDark());
+    }
+
+    if (themeToggle) {
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      applyTheme(savedTheme);
+      themeToggle.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme");
+        const isDark = current ? current === "dark" : getSystemPrefersDark();
+        const next = isDark ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
+      });
+    }
 
     const DEFAULT_SECONDS_PER_CHAR = 0.06;
     const MIN_ESTIMATED_SECONDS = 0.6;
@@ -1051,15 +1255,31 @@
       pillTitle.textContent = notes ? `T\u00edtulo: ${title}${sep}${notes}` : `T\u00edtulo: ${title}`;
     }
 
-    function renderStats(stats) {
+    function updateSummaryPills(stats) {
+      if (!lastProcessed) {
+        pillTotal.textContent = `Dura\u00e7\u00e3o total: ${EMPTY_METRICS_TEXT}`;
+        pillPeople.textContent = `Participantes: ${EMPTY_METRICS_TEXT}`;
+        pillTotalSticky.textContent = `Dura\u00e7\u00e3o total: ${EMPTY_METRICS_TEXT}`;
+        pillPeopleSticky.textContent = `Participantes: ${EMPTY_METRICS_TEXT}`;
+        return;
+      }
       pillTotal.textContent = `Dura\u00e7\u00e3o total: ${formatDuration(stats.totalMeeting)}`;
       pillPeople.textContent = `Participantes: ${stats.presence.length}`;
+      pillTotalSticky.textContent = `Dura\u00e7\u00e3o total: ${formatDuration(stats.totalMeeting)}`;
+      pillPeopleSticky.textContent = `Participantes: ${stats.presence.length}`;
+    }
 
+    function renderEmptyRow(tbody, colSpan) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="${colSpan}" class="emptyState">${EMPTY_METRICS_TEXT}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    function renderStats(stats) {
+      updateSummaryPills(stats);
       statsBody.innerHTML = "";
-      if (!stats.rows.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="4" style="color: var(--muted);">Nenhum dado de fala encontrado (verifique se o VTT cont\u00e9m timestamps + &lt;v Nome&gt;...&lt;/v&gt;).</td>`;
-        statsBody.appendChild(tr);
+      if (!lastProcessed || !stats.rows.length) {
+        renderEmptyRow(statsBody, 4);
         return;
       }
 
@@ -1081,12 +1301,10 @@
 
     function renderTurns(stats) {
       turnsBody.innerHTML = "";
-      turnsMeta.textContent = stats.totalTurns ? `${stats.totalTurns} turno(s)` : "\u2014";
+      turnsMeta.textContent = (lastProcessed && stats.totalTurns) ? `${stats.totalTurns} turno(s)` : EMPTY_METRICS_TEXT;
 
-      if (!stats.turnRows || !stats.turnRows.length) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="4" style="color: var(--muted);">Nenhum dado de turnos encontrado.</td>`;
-        turnsBody.appendChild(tr);
+      if (!lastProcessed || !stats.turnRows || !stats.turnRows.length) {
+        renderEmptyRow(turnsBody, 4);
         return;
       }
 
@@ -1108,11 +1326,17 @@
 
     function renderWordCloud(cues, cleanText) {
       wordCloud.innerHTML = "";
+      if (!lastProcessed) {
+        wordCloud.classList.add("chartEmpty");
+        wordCloud.textContent = EMPTY_METRICS_TEXT;
+        wordCloudMeta.textContent = EMPTY_METRICS_TEXT;
+        return;
+      }
       const data = computeWordCloudData(cues, cleanText);
       if (!data.words.length) {
         wordCloud.classList.add("chartEmpty");
-        wordCloud.textContent = "Sem palavras suficientes para a nuvem.";
-        wordCloudMeta.textContent = "\u2014";
+        wordCloud.textContent = EMPTY_METRICS_TEXT;
+        wordCloudMeta.textContent = EMPTY_METRICS_TEXT;
         return;
       }
       wordCloud.classList.remove("chartEmpty");
@@ -1215,13 +1439,13 @@
 
     function renderTimeline(cues, stats) {
       timelineChart.classList.add("chartEmpty");
-      timelineChart.innerHTML = "Sem dados suficientes para o gr\u00e1fico.";
+      timelineChart.innerHTML = EMPTY_METRICS_TEXT;
       timelineLegend.innerHTML = "";
-      timelineMeta.textContent = "\u2014";
+      timelineMeta.textContent = EMPTY_METRICS_TEXT;
       timelineStart.textContent = "In\u00edcio";
       timelineEnd.textContent = "Fim";
 
-      if (!cues || !cues.length || !stats || !Number.isFinite(stats.totalMeeting) || stats.totalMeeting <= 0) {
+      if (!lastProcessed || !cues || !cues.length || !stats || !Number.isFinite(stats.totalMeeting) || stats.totalMeeting <= 0) {
         return;
       }
 
@@ -1371,15 +1595,24 @@
       updateTitlePill();
     }
 
-    fileEl.addEventListener("change", async () => {
-      const f = fileEl.files && fileEl.files[0];
+    function setDropMeta(filename = "") {
+      if (!dropMeta) return;
+      dropMeta.textContent = filename ? `Selecionado: ${filename}` : "Nenhum arquivo selecionado";
+    }
+
+    function setDropActive(active) {
+      if (dropzone) dropzone.classList.toggle("dragover", active);
+      if (configCard) configCard.classList.toggle("dragover", active);
+    }
+
+    async function handleSelectedFile(f) {
       if (!f) return;
       try {
         const lower = f.name.toLowerCase();
         applyInferredTitle(f.name);
         if (lower.endsWith(".docx")) {
           activeSource = "docx";
-          setStatus(`Lendo DOCX: ${f.name}...`);
+          setStatus(`Lendo DOCX: ${f.name}...`, "muted");
           const buffer = await f.arrayBuffer();
           logDebug("DOCX carregando", { name: f.name, size: f.size });
           const docXml = await extractDocxDocumentXml(buffer);
@@ -1388,20 +1621,67 @@
           logDebug("DOCX parse conclu\u00eddo", { segments: parsed.segments.length, lines: parsed.cleanText.split("\n").filter(Boolean).length });
           lastDocx = parsed;
           inputEl.value = parsed.cleanText || "";
-          setStatus(`DOCX carregado: ${f.name} (${parsed.segments.length} fala(s))`);
+          setStatus(`DOCX carregado: ${f.name} (${parsed.segments.length} fala(s))`, "success");
         } else {
           activeSource = "vtt";
           lastDocx = null;
-          setStatus(`Lendo: ${f.name}...`);
+          setStatus(`Lendo: ${f.name}...`, "muted");
           const content = await readFileAsText(f);
           inputEl.value = content;
-          setStatus(`Arquivo carregado: ${f.name}`);
+          setStatus(`Arquivo carregado: ${f.name}`, "success");
         }
       } catch (e) {
         console.error(e);
-        setStatus(e && e.message ? e.message : "Falha ao ler o arquivo.");
+        setStatus(e && e.message ? e.message : "Falha ao ler o arquivo.", "warn");
       }
+    }
+
+    fileEl.addEventListener("change", async () => {
+      const f = fileEl.files && fileEl.files[0];
+      if (!f) return;
+      setDropMeta(f.name);
+      await handleSelectedFile(f);
     });
+
+    if (pickFile) {
+      pickFile.addEventListener("click", (event) => {
+        event.stopPropagation();
+        fileEl.click();
+      });
+    }
+
+    if (dropzone) {
+      dropzone.addEventListener("click", () => fileEl.click());
+      dropzone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          fileEl.click();
+        }
+      });
+    }
+
+    if (configCard) {
+      const onDragOver = (event) => {
+        event.preventDefault();
+        setDropActive(true);
+      };
+      const onDragLeave = (event) => {
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        setDropActive(false);
+      };
+      const onDrop = async (event) => {
+        event.preventDefault();
+        setDropActive(false);
+        const f = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+        if (!f) return;
+        setDropMeta(f.name);
+        await handleSelectedFile(f);
+      };
+      configCard.addEventListener("dragenter", onDragOver);
+      configCard.addEventListener("dragover", onDragOver);
+      configCard.addEventListener("dragleave", onDragLeave);
+      configCard.addEventListener("drop", onDrop);
+    }
 
     meetingTitleEl.addEventListener("input", () => {
       updateTitlePill();
@@ -1434,10 +1714,10 @@
       const raw = inputEl.value || "";
       if (!raw.trim()) {
         if (!options.silent) {
-          setStatus("Nenhuma entrada para processar.");
+          setStatus("Nenhuma entrada para processar.", "warn");
         }
         outputEl.value = "";
-        setOutStatus("\u2014");
+        setOutStatus("\u2014", "muted");
         lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
         lastCleanText = "";
@@ -1463,14 +1743,14 @@
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
         const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
         if (!options.silent) {
-          setStatus("Processado.");
+          setStatus("Processado.", "success");
         }
-        setOutStatus(`${count} linha(s) na transcri\u00e7\u00e3o`);
+        setOutStatus(`${count} linha(s) na transcri\u00e7\u00e3o`, "success");
         return true;
       } catch (e) {
         console.error(e);
         if (!options.silent) {
-          setStatus("Erro ao processar.");
+          setStatus("Erro ao processar.", "warn");
         }
         return false;
       }
@@ -1480,11 +1760,11 @@
       activeSource = "docx";
       if (!lastDocx || !lastDocx.segments || !lastDocx.segments.length) {
         if (!options.silent) {
-          setStatus("Nenhum DOCX carregado.");
+          setStatus("Nenhum DOCX carregado.", "warn");
         }
         logDebug("DOCX sem segmentos para processar", { hasDocx: !!lastDocx, segments: lastDocx && lastDocx.segments ? lastDocx.segments.length : 0 });
         outputEl.value = "";
-        setOutStatus("\u2014");
+        setOutStatus("\u2014", "muted");
         lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
         lastCleanText = "";
@@ -1510,14 +1790,14 @@
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
         const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
         if (!options.silent) {
-          setStatus("Processado (DOCX).");
+          setStatus("Processado (DOCX).", "success");
         }
-        setOutStatus(`${count} linha(s) na transcri\u00e7\u00e3o`);
+        setOutStatus(`${count} linha(s) na transcri\u00e7\u00e3o`, "success");
         return true;
       } catch (e) {
         console.error(e);
         if (!options.silent) {
-          setStatus("Erro ao processar DOCX.");
+          setStatus("Erro ao processar DOCX.", "warn");
         }
         return false;
       }
@@ -1552,14 +1832,13 @@
       inputEl.value = "";
       outputEl.value = "";
       fileEl.value = "";
+      setDropMeta("");
       meetingTitleEl.value = "";
       meetingTitleEl.setAttribute("data-inferred", "");
       meetingNotesEl.value = "";
       updateTitlePill();
-      setStatus("Pronto.");
-      setOutStatus("\u2014");
-      pillTotal.textContent = "Dura\u00e7\u00e3o total: \u2014";
-      pillPeople.textContent = "Participantes: \u2014";
+      setStatus("Pronto.", "muted");
+      setOutStatus("\u2014", "muted");
       activeSource = "vtt";
       lastDocx = null;
       lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
@@ -1576,23 +1855,23 @@
       try {
         const text = outputEl.value || "";
         if (!text.trim()) {
-          setOutStatus("Nada para copiar");
+          setOutStatus("Nada para copiar", "warn");
           return;
         }
         await navigator.clipboard.writeText(text);
-        setOutStatus("Copiado");
+        setOutStatus("Copiado", "success");
       } catch {
         outputEl.focus();
         outputEl.select();
         const ok = document.execCommand("copy");
-        setOutStatus(ok ? "Copiado" : "N\u00e3o foi poss\u00edvel copiar");
+        setOutStatus(ok ? "Copiado" : "N\u00e3o foi poss\u00edvel copiar", ok ? "success" : "warn");
       }
     });
 
     $("download").addEventListener("click", () => {
       const text = outputEl.value || "";
       if (!text.trim()) {
-        setOutStatus("Nada para baixar");
+        setOutStatus("Nada para baixar", "warn");
         return;
       }
       const inferred = meetingTitleEl.getAttribute("data-inferred") || "";
@@ -1610,7 +1889,7 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setOutStatus("Download iniciado");
+      setOutStatus("Download iniciado", "success");
     });
 
     updateTitlePill();
