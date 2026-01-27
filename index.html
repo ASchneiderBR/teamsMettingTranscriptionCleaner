@@ -73,6 +73,24 @@
 
     .bar{height:10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.08); overflow:hidden}
     .bar > div{height:100%; background: var(--primaryBorder); width:0%}
+
+    .chartWrap{margin-top:14px}
+    .chartHeader{display:flex; justify-content:space-between; align-items:center; gap:8px}
+    .chartTitle{font-size:13px; font-weight:900}
+    .chartMeta{font-size:12px; color: var(--muted)}
+    .chartGrid{
+      height:220px; display:flex; align-items:flex-end; gap:2px; padding:8px 6px;
+      border:1px solid var(--border); border-radius:14px;
+      background: linear-gradient(to top, rgba(127,127,127,0.12) 1px, transparent 1px);
+      background-size: 100% 25%;
+    }
+    .chartBar{flex:1 1 0; display:flex; flex-direction:column-reverse; min-width:2px}
+    .chartSeg{width:100%}
+    .chartAxis{display:flex; justify-content:space-between; font-size:12px; color: var(--muted); margin-top:6px}
+    .legend{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:8px}
+    .legendItem{display:flex; align-items:center; gap:6px; font-size:12px; color: var(--muted)}
+    .legendSwatch{width:12px; height:12px; border-radius:3px; border:1px solid var(--border)}
+    .chartEmpty{display:flex; align-items:center; justify-content:center; font-size:12px; color: var(--muted)}
   </style>
 </head>
 <body>
@@ -164,6 +182,21 @@
             <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
           </tbody>
         </table>
+
+        <div class="chartWrap">
+          <div class="chartHeader">
+            <div class="chartTitle">Fala ao longo do tempo</div>
+            <div class="chartMeta" id="timelineMeta">&mdash;</div>
+          </div>
+          <div class="chartGrid chartEmpty" id="timelineChart" role="img" aria-label="Fala ao longo do tempo">
+            Sem dados suficientes para o gr&aacute;fico.
+          </div>
+          <div class="chartAxis">
+            <span id="timelineStart">In&iacute;cio</span>
+            <span id="timelineEnd">Fim</span>
+          </div>
+          <div class="legend" id="timelineLegend"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -190,6 +223,11 @@
     const metaEnd = $("metaEnd");
 
     const statsBody = $("statsBody");
+    const timelineChart = $("timelineChart");
+    const timelineLegend = $("timelineLegend");
+    const timelineMeta = $("timelineMeta");
+    const timelineStart = $("timelineStart");
+    const timelineEnd = $("timelineEnd");
 
     function setStatus(msg) { statusEl.textContent = msg; }
     function setOutStatus(msg) { outStatusEl.textContent = msg; }
@@ -224,6 +262,99 @@
       const ss = total % 60;
       const pad2 = (n) => String(n).padStart(2, "0");
       return hh > 0 ? `${hh}:${pad2(mm)}:${pad2(ss)}` : `${mm}:${pad2(ss)}`;
+    }
+
+    const speakerColors = [
+      "#2563eb",
+      "#f97316",
+      "#16a34a",
+      "#9333ea",
+      "#e11d48",
+      "#0ea5e9",
+      "#f59e0b",
+      "#14b8a6",
+      "#84cc16",
+      "#db2777",
+    ];
+
+    function pickBucketSeconds(totalSeconds) {
+      if (totalSeconds <= 300) return 15;
+      if (totalSeconds <= 1200) return 30;
+      if (totalSeconds <= 3600) return 60;
+      if (totalSeconds <= 7200) return 120;
+      return 300;
+    }
+
+    function formatBucketLabel(seconds) {
+      if (seconds % 60 === 0) {
+        const mins = seconds / 60;
+        return `${mins} min`;
+      }
+      return `${seconds}s`;
+    }
+
+    function computeTimeline(cues, orderDesc, bucketSeconds) {
+      let minS = Infinity;
+      let maxE = -Infinity;
+      for (const cue of cues) {
+        if (!Number.isFinite(cue.startS) || !Number.isFinite(cue.endS)) continue;
+        minS = Math.min(minS, cue.startS);
+        maxE = Math.max(maxE, cue.endS);
+      }
+      if (minS === Infinity || maxE === -Infinity) return null;
+
+      const total = Math.max(0, maxE - minS);
+      const bucketCount = Math.max(1, Math.ceil(total / bucketSeconds));
+
+      const buckets = new Map();
+      const order = Array.from(orderDesc || []);
+
+      for (const name of order) {
+        buckets.set(name, new Array(bucketCount).fill(0));
+      }
+
+      for (const cue of cues) {
+        if (!Number.isFinite(cue.startS) || !Number.isFinite(cue.endS)) continue;
+        if (cue.endS <= cue.startS) continue;
+        const speakers = cue.speakers || [];
+        const uniqueNames = Array.from(new Set(speakers.map(s => s.name).filter(Boolean)));
+        if (!uniqueNames.length) continue;
+
+        for (const name of uniqueNames) {
+          if (!buckets.has(name)) {
+            buckets.set(name, new Array(bucketCount).fill(0));
+            order.push(name);
+          }
+        }
+
+        const start = cue.startS;
+        const end = cue.endS;
+        const firstIdx = Math.max(0, Math.floor((start - minS) / bucketSeconds));
+        const lastIdx = Math.min(bucketCount - 1, Math.floor((end - minS) / bucketSeconds));
+        const share = 1 / uniqueNames.length;
+
+        for (let idx = firstIdx; idx <= lastIdx; idx++) {
+          const bucketStart = minS + idx * bucketSeconds;
+          const bucketEnd = bucketStart + bucketSeconds;
+          const overlap = Math.max(0, Math.min(end, bucketEnd) - Math.max(start, bucketStart));
+          if (overlap <= 0) continue;
+          for (const name of uniqueNames) {
+            buckets.get(name)[idx] += overlap * share;
+          }
+        }
+      }
+
+      let maxBucketSeconds = 0;
+      for (let i = 0; i < bucketCount; i++) {
+        let sum = 0;
+        for (const name of order) {
+          const arr = buckets.get(name);
+          sum += arr ? arr[i] : 0;
+        }
+        if (sum > maxBucketSeconds) maxBucketSeconds = sum;
+      }
+
+      return { minS, maxE, bucketCount, bucketSeconds, buckets, order, maxBucketSeconds };
     }
 
     function inferTitleFromFilename(name) {
@@ -366,6 +497,42 @@
           continue;
         }
 
+        // Suporte a <v Nome> sem tag de fechamento (comum em VTT)
+        const looseSegs = [];
+        const tagRe = /<v\s+([^>]+)>/gi;
+        let lastIndex = 0;
+        let lastName = null;
+        let tag;
+        while ((tag = tagRe.exec(payloadText)) !== null) {
+          if (lastName !== null) {
+            let content = payloadText.slice(lastIndex, tag.index);
+            if (removeTags) content = stripAllTags(content);
+            if (doTrim) content = normalizeSpaces(content);
+            if (content || !dropEmpty) {
+              looseSegs.push({ name: lastName, text: content });
+              if (content) cleanLines.push(`${lastName}>${content}`);
+            }
+          }
+          lastName = (tag[1] || "").trim();
+          lastIndex = tagRe.lastIndex;
+        }
+        if (lastName !== null) {
+          let content = payloadText.slice(lastIndex);
+          if (removeTags) content = stripAllTags(content);
+          if (doTrim) content = normalizeSpaces(content);
+          if (content || !dropEmpty) {
+            looseSegs.push({ name: lastName, text: content });
+            if (content) cleanLines.push(`${lastName}>${content}`);
+          }
+        }
+
+        if (looseSegs.length) {
+          if (Number.isFinite(startS) && Number.isFinite(endS) && endS >= startS) {
+            cues.push({ startS, endS, speakers: looseSegs });
+          }
+          continue;
+        }
+
         let line = payloadText;
         if (removeTags) line = stripAllTags(line);
         if (doTrim) line = normalizeSpaces(line);
@@ -482,6 +649,75 @@
       }
     }
 
+    function renderTimeline(cues, stats) {
+      timelineChart.classList.add("chartEmpty");
+      timelineChart.innerHTML = "Sem dados suficientes para o gr\u00e1fico.";
+      timelineLegend.innerHTML = "";
+      timelineMeta.textContent = "\u2014";
+      timelineStart.textContent = "In\u00edcio";
+      timelineEnd.textContent = "Fim";
+
+      if (!cues || !cues.length || !stats || !Number.isFinite(stats.totalMeeting) || stats.totalMeeting <= 0) {
+        return;
+      }
+
+      const bucketSeconds = pickBucketSeconds(stats.totalMeeting);
+      const orderDesc = (stats.rows || []).map(r => r.name);
+      const timeline = computeTimeline(cues, orderDesc, bucketSeconds);
+      if (!timeline || timeline.maxBucketSeconds <= 0) {
+        return;
+      }
+
+      const colorMap = new Map();
+      timeline.order.forEach((name, idx) => {
+        colorMap.set(name, speakerColors[idx % speakerColors.length]);
+      });
+
+      timelineChart.classList.remove("chartEmpty");
+      timelineChart.innerHTML = "";
+
+      const orderAsc = Array.from(timeline.order).reverse();
+      for (let i = 0; i < timeline.bucketCount; i++) {
+        const bar = document.createElement("div");
+        bar.className = "chartBar";
+        const bucketStart = i * timeline.bucketSeconds;
+        const bucketEnd = Math.min((i + 1) * timeline.bucketSeconds, stats.totalMeeting);
+        bar.title = `${formatDuration(bucketStart)} \u2192 ${formatDuration(bucketEnd)}`;
+
+        for (const name of orderAsc) {
+          const arr = timeline.buckets.get(name);
+          const secs = arr ? arr[i] : 0;
+          if (!secs) continue;
+          const seg = document.createElement("div");
+          seg.className = "chartSeg";
+          const h = (secs / timeline.maxBucketSeconds) * 100;
+          seg.style.height = `${h.toFixed(2)}%`;
+          seg.style.background = colorMap.get(name);
+          seg.title = `${name}: ${formatDuration(secs)}`;
+          bar.appendChild(seg);
+        }
+        timelineChart.appendChild(bar);
+      }
+
+      const maxMinutes = timeline.maxBucketSeconds / 60;
+      timelineMeta.textContent = `Resolu\u00e7\u00e3o: ${formatBucketLabel(bucketSeconds)} \u2022 Pico: ${maxMinutes.toFixed(1)} min`;
+      timelineStart.textContent = "0:00";
+      timelineEnd.textContent = formatDuration(stats.totalMeeting);
+
+      for (const name of timeline.order) {
+        const item = document.createElement("div");
+        item.className = "legendItem";
+        const swatch = document.createElement("span");
+        swatch.className = "legendSwatch";
+        swatch.style.background = colorMap.get(name);
+        const label = document.createElement("span");
+        label.textContent = name;
+        item.appendChild(swatch);
+        item.appendChild(label);
+        timelineLegend.appendChild(item);
+      }
+    }
+
     function padRight(s, n) {
       s = String(s);
       return s.length >= n ? s : s + " ".repeat(n - s.length);
@@ -571,6 +807,7 @@
     });
 
     let lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+    let lastCues = [];
     let lastCleanText = "";
     let lastProcessed = false;
 
@@ -588,18 +825,22 @@
         outputEl.value = "";
         setOutStatus("\u2014");
         lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+        lastCues = [];
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
+        renderTimeline(lastCues, lastStats);
         updateTitlePill();
         return false;
       }
       try {
         const parsed = parseVtt(raw);
         lastStats = computeStats(parsed.cues);
+        lastCues = parsed.cues || [];
         lastCleanText = parsed.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
+        renderTimeline(lastCues, lastStats);
         updateTitlePill();
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
         const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
@@ -646,9 +887,11 @@
       pillTotal.textContent = "Dura\u00e7\u00e3o total: \u2014";
       pillPeople.textContent = "Participantes: \u2014";
       lastStats = { totalMeeting: 0, totalSpeech: 0, presence: [], rows: [] };
+      lastCues = [];
       lastCleanText = "";
       lastProcessed = false;
       renderStats(lastStats);
+      renderTimeline(lastCues, lastStats);
     });
 
     $("copy").addEventListener("click", async () => {
@@ -694,6 +937,7 @@
 
     updateTitlePill();
     renderStats(lastStats);
+    renderTimeline(lastCues, lastStats);
   </script>
 </body>
 </html>

@@ -17,7 +17,7 @@ Projeto em HTML unico para limpar transcricoes do Microsoft Teams em `.vtt`, ger
 - Exibe metricas visuais no proprio HTML.
 
 ## Como usar
-1. Abra `teamsmettingcleaner.html` no navegador.
+1. Abra `index.html` no navegador.
 2. Carregue um arquivo `.vtt` ou cole o conteudo no campo de entrada.
 3. (Opcional) informe data, horario de inicio, titulo e observacoes.
 4. Clique em **Processar**.
@@ -63,4 +63,4 @@ Se nao houver `<v Nome>`, o codigo tenta o fallback `Nome: Texto`.
 - Exportar CSV das metricas.
 
 ## Desenvolvimento
-Este repo e um HTML unico, sem build. Basta editar `teamsmettingcleaner.html`.
+Este repo e um HTML unico, sem build. Basta editar `index.html`.
