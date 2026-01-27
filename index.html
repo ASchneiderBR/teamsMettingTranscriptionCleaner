@@ -19,7 +19,8 @@
       --success:#22c55e; --warning:#f59e0b;
       --shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
       --shadowSoft: 0 8px 20px rgba(15, 23, 42, 0.08);
-      --sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --scroll-thumb: rgba(15, 23, 42, 0.35);
+    --sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --r: 18px;
     }
@@ -33,6 +34,7 @@
       --success:#34d399; --warning:#fbbf24;
       --shadow: 0 16px 40px rgba(0,0,0,0.4);
       --shadowSoft: 0 10px 24px rgba(0,0,0,0.3);
+      --scroll-thumb: rgba(229, 231, 235, 0.35);
     }
     @media (prefers-color-scheme: dark){
       :root:not([data-theme="light"]){
@@ -45,6 +47,7 @@
         --success:#34d399; --warning:#fbbf24;
         --shadow: 0 16px 40px rgba(0,0,0,0.4);
         --shadowSoft: 0 10px 24px rgba(0,0,0,0.3);
+        --scroll-thumb: rgba(229, 231, 235, 0.35);
       }
     }
     *{box-sizing:border-box}
@@ -104,6 +107,19 @@
       width:100%; min-height:240px; padding:12px; border-radius:12px; border:1px solid var(--border2);
       background: var(--field); color: var(--fg); outline:none;
       font-family: var(--mono); font-size:12.5px; resize: vertical;
+    }
+    textarea::-webkit-scrollbar{
+      width:10px;
+    }
+    textarea::-webkit-scrollbar-track{
+      background: var(--field);
+    }
+    textarea::-webkit-scrollbar-thumb{
+      background: var(--scroll-thumb);
+      border-radius:999px;
+    }
+    textarea{
+      scrollbar-color: var(--scroll-thumb) var(--field);
     }
 
     .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px}
@@ -1287,7 +1303,7 @@
 
       for (const r of stats.rows) {
         const tr = document.createElement("tr");
-        const pctStr = `${r.pct.toFixed(1)}%`;
+        const pctStr = `${Math.round(r.pct)}%`;
         const w = maxPct > 0 ? (r.pct / maxPct) * 100 : 0;
         tr.innerHTML = `
           <td><strong>${escapeHtml(r.name)}</strong></td>
@@ -1312,7 +1328,7 @@
 
       for (const r of stats.turnRows) {
         const tr = document.createElement("tr");
-        const pctStr = `${r.turnPct.toFixed(1)}%`;
+        const pctStr = `${Math.round(r.turnPct)}%`;
         const w = maxPct > 0 ? (r.turnPct / maxPct) * 100 : 0;
         tr.innerHTML = `
           <td><strong>${escapeHtml(r.name)}</strong></td>
@@ -1519,14 +1535,14 @@
 
       const nameW = Math.min(40, Math.max(header1.length, ...rows.map(r => String(r.name).length)));
       const timeW = Math.max(header2.length, ...rows.map(r => formatDuration(r.seconds).length));
-      const pctW = Math.max(header3.length, ...rows.map(r => `${r.pct.toFixed(1)}%`.length));
+      const pctW = Math.max(header3.length, ...rows.map(r => `${Math.round(r.pct)}%`.length));
 
       const lines = [];
       lines.push(`${padRight(header1, nameW)}  ${padRight(header2, timeW)}  ${padRight(header3, pctW)}`);
       lines.push(`${"-".repeat(nameW)}  ${"-".repeat(timeW)}  ${"-".repeat(pctW)}`);
 
       for (const r of rows) {
-        const pct = `${r.pct.toFixed(1)}%`;
+        const pct = `${Math.round(r.pct)}%`;
         lines.push(`${padRight(r.name, nameW)}  ${padRight(formatDuration(r.seconds), timeW)}  ${padRight(pct, pctW)}`);
       }
       return lines.join("\n");
@@ -1540,14 +1556,14 @@
 
       const nameW = Math.min(40, Math.max(header1.length, ...rows.map(r => String(r.name).length)));
       const turnsW = Math.max(header2.length, ...rows.map(r => String(r.turns).length));
-      const pctW = Math.max(header3.length, ...rows.map(r => `${r.turnPct.toFixed(1)}%`.length));
+      const pctW = Math.max(header3.length, ...rows.map(r => `${Math.round(r.turnPct)}%`.length));
 
       const lines = [];
       lines.push(`${padRight(header1, nameW)}  ${padRight(header2, turnsW)}  ${padRight(header3, pctW)}`);
       lines.push(`${"-".repeat(nameW)}  ${"-".repeat(turnsW)}  ${"-".repeat(pctW)}`);
 
       for (const r of rows) {
-        const pct = `${r.turnPct.toFixed(1)}%`;
+        const pct = `${Math.round(r.turnPct)}%`;
         lines.push(`${padRight(r.name, nameW)}  ${padRight(r.turns, turnsW)}  ${padRight(pct, pctW)}`);
       }
       return lines.join("\n");
