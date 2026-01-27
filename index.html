@@ -74,9 +74,11 @@
     .bar{height:10px; border-radius:999px; border:1px solid var(--border); background: rgba(127,127,127,0.08); overflow:hidden}
     .bar > div{height:100%; background: var(--primaryBorder); width:0%}
 
-    .chartWrap{margin-top:14px}
-    .chartHeader{display:flex; justify-content:space-between; align-items:center; gap:8px}
-    .chartTitle{font-size:13px; font-weight:900}
+    .metricSection{margin-top:14px}
+    .metricSection:first-of-type{margin-top:10px}
+    .metricSection table{margin-top:0}
+    .chartHeader{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px}
+    .chartTitle{font-size:12px; font-weight:800; opacity:0.92}
     .chartMeta{font-size:12px; color: var(--muted)}
     .chartGrid{
       height:220px; display:flex; align-items:stretch; gap:2px; padding:8px 6px;
@@ -91,6 +93,50 @@
     .legendItem{display:flex; align-items:center; gap:6px; font-size:12px; color: var(--muted)}
     .legendSwatch{width:12px; height:12px; border-radius:3px; border:1px solid var(--border)}
     .chartEmpty{display:flex; align-items:center; justify-content:center; font-size:12px; color: var(--muted)}
+    .wordCloud{
+      height:320px; padding:12px 14px; border:1px solid var(--border); border-radius:14px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(127,127,127,0.10), transparent 55%),
+        radial-gradient(circle at 80% 70%, rgba(127,127,127,0.08), transparent 60%);
+      text-align:center;
+    }
+
+    /* jQCloud styles */
+    div.jqcloud { font-size: 13px; line-height: normal; overflow: hidden; position: relative; margin: 0; }
+    div.jqcloud a { font-size: inherit; text-decoration: none; }
+    div.jqcloud span.w10 { font-size: 550%; }
+    div.jqcloud span.w9 { font-size: 500%; }
+    div.jqcloud span.w8 { font-size: 450%; }
+    div.jqcloud span.w7 { font-size: 400%; }
+    div.jqcloud span.w6 { font-size: 350%; }
+    div.jqcloud span.w5 { font-size: 300%; }
+    div.jqcloud span.w4 { font-size: 250%; }
+    div.jqcloud span.w3 { font-size: 200%; }
+    div.jqcloud span.w2 { font-size: 150%; }
+    div.jqcloud span.w1 { font-size: 100%; }
+    div.jqcloud { color: #2BA0FD; }
+    div.jqcloud span.w10 { color: #3D5A68; }
+    div.jqcloud span.w9 { color: #563225; }
+    div.jqcloud span.w8 { color: #DC7500; }
+    div.jqcloud span.w7 { color: #298C2D; }
+    div.jqcloud span.w6 { color:  #0073D0; }
+    div.jqcloud span.w5 { color:  #1C2E92; }
+    div.jqcloud span.w4 { color: #441794; }
+    div.jqcloud span.w3 { color: #79048D; }
+    div.jqcloud span.w2 { color: #C60040; }
+    div.jqcloud span.w1 { color: #D12013; }
+    div.jqcloud span.c1 { color: #D12013; }
+    div.jqcloud span.c2 { color: #C60040; }
+    div.jqcloud span.c3 { color: #79048D; }
+    div.jqcloud span.c4 { color: #441794; }
+    div.jqcloud span.c5 { color: #1C2E92; }
+    div.jqcloud span.c6 { color: #0073D0; }
+    div.jqcloud span.c7 { color: #298C2D; }
+    div.jqcloud span.c8 { color: #DC7500; }
+    div.jqcloud span.c9 { color: #563225; }
+    div.jqcloud span.c10 { color: #3D5A68; }
+    div.jqcloud span:hover { color: #0099B2; }
+    div.jqcloud span { padding: 0; }
   </style>
 </head>
 <body>
@@ -164,26 +210,36 @@
 
       <div class="card">
         <h2>M&eacute;tricas</h2>
-        <div class="row cols2">
-          <div><div class="pill" id="metaWhen">Data/hora: &mdash;</div></div>
-          <div><div class="pill" id="metaEnd">T&eacute;rmino estimado: &mdash;</div></div>
+        <div class="metricSection">
+          <div class="chartHeader">
+            <div class="chartTitle">Tempo de fala</div>
+          </div>
+          <table aria-label="Tabela de m&eacute;tricas">
+            <thead>
+              <tr>
+                <th style="width:34%;">Participante</th>
+                <th style="width:16%;">Tempo</th>
+                <th style="width:14%;">% fala</th>
+                <th>Distribui&ccedil;&atilde;o</th>
+              </tr>
+            </thead>
+            <tbody id="statsBody">
+              <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <table aria-label="Tabela de m&eacute;tricas">
-          <thead>
-            <tr>
-              <th style="width:34%;">Participante</th>
-              <th style="width:16%;">Tempo</th>
-              <th style="width:14%;">% fala</th>
-              <th>Distribui&ccedil;&atilde;o</th>
-            </tr>
-          </thead>
-          <tbody id="statsBody">
-            <tr><td colspan="4" style="color: var(--muted);">Nenhum dado ainda.</td></tr>
-          </tbody>
-        </table>
+        <div class="metricSection">
+          <div class="chartHeader">
+            <div class="chartTitle">Nuvem de palavras</div>
+            <div class="chartMeta" id="wordCloudMeta">&mdash;</div>
+          </div>
+          <div class="wordCloud jqcloud chartEmpty" id="wordCloud" role="img" aria-label="Nuvem de palavras">
+            Sem palavras suficientes para a nuvem.
+          </div>
+        </div>
 
-        <div class="chartWrap">
+        <div class="metricSection">
           <div class="chartHeader">
             <div class="chartTitle">Fala ao longo do tempo</div>
             <div class="chartMeta" id="timelineMeta">&mdash;</div>
@@ -219,15 +275,14 @@
     const pillTotal = $("pillTotal");
     const pillPeople = $("pillPeople");
 
-    const metaWhen = $("metaWhen");
-    const metaEnd = $("metaEnd");
-
     const statsBody = $("statsBody");
     const timelineChart = $("timelineChart");
     const timelineLegend = $("timelineLegend");
     const timelineMeta = $("timelineMeta");
     const timelineStart = $("timelineStart");
     const timelineEnd = $("timelineEnd");
+    const wordCloud = $("wordCloud");
+    const wordCloudMeta = $("wordCloudMeta");
 
     function setStatus(msg) { statusEl.textContent = msg; }
     function setOutStatus(msg) { outStatusEl.textContent = msg; }
@@ -236,6 +291,9 @@
     const DEFAULT_SECONDS_PER_CHAR = 0.06;
     const MIN_ESTIMATED_SECONDS = 0.6;
     const WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+    const WORD_CLOUD_MAX = 30;
+    const WORD_CLOUD_STOP = new Set(['a', 'à', 'adeus', 'agora', 'aí', 'ainda', 'além', 'algo', 'alguém', 'algum', 'alguma', 'algumas', 'alguns', 'ali', 'ampla', 'amplas', 'amplo', 'amplos', 'ano', 'anos', 'ante', 'antes', 'ao', 'aos', 'apenas', 'apoio', 'após', 'aquela', 'aquelas', 'aquele', 'aqueles', 'aqui', 'aquilo', 'área', 'as', 'às', 'assim', 'até', 'atrás', 'através', 'baixo', 'bastante', 'bem', 'boa', 'boas', 'bom', 'bons', 'breve', 'cá', 'cada', 'catorze', 'cedo', 'cento', 'certamente', 'certeza', 'cima', 'cinco', 'coisa', 'coisas', 'com', 'como', 'conselho', 'contra', 'contudo', 'custa', 'da', 'dá', 'dão', 'daquela', 'daquelas', 'daquele', 'daqueles', 'dar', 'das', 'de', 'debaixo', 'dela', 'delas', 'dele', 'deles', 'demais', 'dentro', 'depois', 'desde', 'dessa', 'dessas', 'desse', 'desses', 'desta', 'destas', 'deste', 'destes', 'deve', 'devem', 'devendo', 'dever', 'deverá', 'deverão', 'deveria', 'deveriam', 'devia', 'deviam', 'dez', 'dezanove', 'dezasseis', 'dezassete', 'dezoito', 'dia', 'diante', 'disse', 'disso', 'disto', 'dito', 'diz', 'dizem', 'dizer', 'do', 'dois', 'dos', 'doze', 'duas', 'dúvida', 'e', 'é', 'ela', 'elas', 'ele', 'eles', 'em', 'embora', 'enquanto', 'entre', 'era', 'eram', 'éramos', 'és', 'essa', 'essas', 'esse', 'esses', 'esta', 'está', 'estamos', 'estão', 'estar', 'estas', 'estás', 'estava', 'estavam', 'estávamos', 'este', 'esteja', 'estejam', 'estejamos', 'estes', 'esteve', 'estive', 'estivemos', 'estiver', 'estivera', 'estiveram', 'estivéramos', 'estiverem', 'estivermos', 'estivesse', 'estivessem', 'estivéssemos', 'estiveste', 'estivestes', 'estou', 'etc', 'eu', 'exemplo', 'faço', 'falta', 'favor', 'faz', 'fazeis', 'fazem', 'fazemos', 'fazendo', 'fazer', 'fazes', 'feita', 'feitas', 'feito', 'feitos', 'fez', 'fim', 'final', 'foi', 'fomos', 'for', 'fora', 'foram', 'fôramos', 'forem', 'forma', 'formos', 'fosse', 'fossem', 'fôssemos', 'foste', 'fostes', 'fui', 'geral', 'grande', 'grandes', 'grupo', 'há', 'haja', 'hajam', 'hajamos', 'hão', 'havemos', 'havia', 'hei', 'hoje', 'hora', 'horas', 'houve', 'houvemos', 'houver', 'houvera', 'houverá', 'houveram', 'houvéramos', 'houverão', 'houverei', 'houverem', 'houveremos', 'houveria', 'houveriam', 'houveríamos', 'houvermos', 'houvesse', 'houvessem', 'houvéssemos', 'isso', 'isto', 'já', 'la', 'lá', 'lado', 'lhe', 'lhes', 'lo', 'local', 'logo', 'longe', 'lugar', 'maior', 'maioria', 'mais', 'mal', 'mas', 'máximo', 'me', 'meio', 'menor', 'menos', 'mês', 'meses', 'mesma', 'mesmas', 'mesmo', 'mesmos', 'meu', 'meus', 'mil', 'minha', 'minhas', 'momento', 'muita', 'muitas', 'muito', 'muitos', 'na', 'nada', 'não', 'naquela', 'naquelas', 'naquele', 'naqueles', 'nas', 'nem', 'nenhum', 'nenhuma', 'nessa', 'nessas', 'nesse', 'nesses', 'nesta', 'nestas', 'neste', 'nestes', 'ninguém', 'nível', 'no', 'noite', 'nome', 'nos', 'nós', 'nossa', 'nossas', 'nosso', 'nossos', 'nova', 'novas', 'nove', 'novo', 'novos', 'num', 'numa', 'número', 'nunca', 'o', 'obra', 'obrigada', 'obrigado', 'oitava', 'oitavo', 'oito', 'onde', 'ontem', 'onze', 'os', 'ou', 'outra', 'outras', 'outro', 'outros', 'para', 'parece', 'parte', 'partir', 'paucas', 'pela', 'pelas', 'pelo', 'pelos', 'pequena', 'pequenas', 'pequeno', 'pequenos', 'per', 'perante', 'perto', 'pode', 'pude', 'pôde', 'podem', 'podendo', 'poder', 'poderia', 'poderiam', 'podia', 'podiam', 'põe', 'põem', 'pois', 'ponto', 'pontos', 'por', 'porém', 'porque', 'porquê', 'posição', 'possível', 'possivelmente', 'posso', 'pouca', 'poucas', 'pouco', 'poucos', 'primeira', 'primeiras', 'primeiro', 'primeiros', 'própria', 'próprias', 'próprio', 'próprios', 'próxima', 'próximas', 'próximo', 'próximos', 'pude', 'puderam', 'quais', 'quáis', 'qual', 'quando', 'quanto', 'quantos', 'quarta', 'quarto', 'quatro', 'que', 'quê', 'quem', 'quer', 'quereis', 'querem', 'queremas', 'queres', 'quero', 'questão', 'quinta', 'quinto', 'quinze', 'relação', 'sabe', 'sabem', 'são', 'se', 'segunda', 'segundo', 'sei', 'seis', 'seja', 'sejam', 'sejamos', 'sem', 'sempre', 'sendo', 'ser', 'será', 'serão', 'serei', 'seremos', 'seria', 'seriam', 'seríamos', 'sete', 'sétima', 'sétimo', 'seu', 'seus', 'sexta', 'sexto', 'si', 'sido', 'sim', 'sistema', 'só', 'sob', 'sobre', 'sois', 'somos', 'sou', 'sua', 'suas', 'tal', 'talvez', 'também', 'tampouco', 'tanta', 'tantas', 'tanto', 'tão', 'tarde', 'te', 'tem', 'tém', 'têm', 'temos', 'tendes', 'tendo', 'tenha', 'tenham', 'tenhamos', 'tenho', 'tens', 'ter', 'terá', 'terão', 'terceira', 'terceiro', 'terei', 'teremos', 'teria', 'teriam', 'teríamos', 'teu', 'teus', 'teve', 'ti', 'tido', 'tinha', 'tinham', 'tínhamos', 'tive', 'tivemos', 'tiver', 'tivera', 'tiveram', 'tivéramos', 'tiverem', 'tivermos', 'tivesse', 'tivessem', 'tivéssemos', 'tiveste', 'tivestes', 'toda', 'todas', 'todavia', 'todo', 'todos', 'trabalho', 'três', 'treze', 'tu', 'tua', 'tuas', 'tudo', 'última', 'últimas', 'último', 'últimos', 'um', 'uma', 'umas', 'uns', 'vai', 'vais', 'vão', 'vários', 'vem', 'vêm', 'vendo', 'vens', 'ver', 'vez', 'vezes', 'viagem', 'vindo', 'vinte', 'vir', 'você', 'vocês', 'vos', 'vós', 'vossa', 'vossas', 'vosso', 'vossos', 'zero', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_' ]);
+
 
     function isTimestampLine(line) {
       return /\d{2}:\d{2}:\d{2}(?:\.\d+)?\s*-->\s*\d{2}:\d{2}:\d{2}(?:\.\d+)?/.test(line);
@@ -247,6 +305,15 @@
 
     function normalizeSpaces(s) {
       return s.replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function tokenizeWords(text) {
+      return String(text || "")
+        .toLowerCase()
+        .replace(/[\u2019']/g, "")
+        .replace(/[^0-9a-zA-Z\u00C0-\u017F]+/g, " ")
+        .split(/\s+/)
+        .filter(Boolean);
     }
 
     function parseTimeToSeconds(ts) {
@@ -438,6 +505,65 @@
         .replace(/>/g, "&gt;")
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    function collectTextSegments(cues, cleanText) {
+      const segments = [];
+      if (cues && cues.length) {
+        for (const cue of cues) {
+          const speakers = cue.speakers || [];
+          for (const sp of speakers) {
+            if (sp && sp.text) segments.push(sp.text);
+          }
+        }
+      }
+      if (!segments.length && cleanText) {
+        const lines = String(cleanText).split("\n").map(l => l.trim()).filter(Boolean);
+        for (const line of lines) {
+          let content = line;
+          const arrowIdx = line.indexOf(">");
+          if (arrowIdx > 0 && arrowIdx < 60) {
+            const after = line.slice(arrowIdx + 1).trim();
+            if (after) content = after;
+          } else {
+            const colonIdx = line.indexOf(":");
+            if (colonIdx > 0 && colonIdx < 60) {
+              const after = line.slice(colonIdx + 1).trim();
+              if (after) content = after;
+            }
+          }
+          if (content) segments.push(content);
+        }
+      }
+      return segments;
+    }
+
+    function computeWordCloudData(cues, cleanText) {
+      const segments = collectTextSegments(cues, cleanText);
+      const freq = new Map();
+      let totalTokens = 0;
+
+      for (const segment of segments) {
+        const tokens = tokenizeWords(segment);
+        for (const token of tokens) {
+          if (token.length < 3) continue;
+          if (/^\d+$/.test(token)) continue;
+          if (WORD_CLOUD_STOP.has(token)) continue;
+          freq.set(token, (freq.get(token) || 0) + 1);
+          totalTokens++;
+        }
+      }
+
+      const words = Array.from(freq.entries())
+        .map(([word, count]) => ({ word, count }))
+        .sort((a, b) => (b.count - a.count) || a.word.localeCompare(b.word, "pt-BR"));
+
+      return {
+        words: words.slice(0, WORD_CLOUD_MAX),
+        uniqueCount: freq.size,
+        totalTokens,
+        limit: WORD_CLOUD_MAX,
+      };
     }
 
     function findZipEocdOffset(view) {
@@ -886,16 +1012,6 @@
       pillTotal.textContent = `Dura\u00e7\u00e3o total: ${formatDuration(stats.totalMeeting)}`;
       pillPeople.textContent = `Participantes: ${stats.presence.length}`;
 
-      const startDT = buildMeetingDateTime();
-      if (startDT) {
-        metaWhen.textContent = `Data/hora: ${formatLocalDateTime(startDT)}`;
-        const endDT = new Date(startDT.getTime() + Math.round(stats.totalMeeting * 1000));
-        metaEnd.textContent = `T\u00e9rmino estimado: ${formatLocalDateTime(endDT)}`;
-      } else {
-        metaWhen.textContent = "Data/hora: \u2014";
-        metaEnd.textContent = "T\u00e9rmino estimado: \u2014";
-      }
-
       statsBody.innerHTML = "";
       if (!stats.rows.length) {
         const tr = document.createElement("tr");
@@ -918,6 +1034,113 @@
         `;
         statsBody.appendChild(tr);
       }
+    }
+
+    function renderWordCloud(cues, cleanText) {
+      wordCloud.innerHTML = "";
+      const data = computeWordCloudData(cues, cleanText);
+      if (!data.words.length) {
+        wordCloud.classList.add("chartEmpty");
+        wordCloud.textContent = "Sem palavras suficientes para a nuvem.";
+        wordCloudMeta.textContent = "\u2014";
+        return;
+      }
+      wordCloud.classList.remove("chartEmpty");
+
+      const sorted = data.words.slice().sort((a, b) => b.count - a.count);
+      const max = sorted[0].count;
+      const min = sorted[sorted.length - 1].count;
+
+      const rect = wordCloud.getBoundingClientRect();
+      const width = rect.width || wordCloud.clientWidth || 1;
+      const height = rect.height || wordCloud.clientHeight || 1;
+      const center = { x: width / 2, y: height / 2 };
+      const aspect = width / height;
+      const placed = [];
+      const step = 1.6;
+      const maxAttempts = 8000;
+      const maxRadius = Math.max(width, height) * 1.15;
+
+      const overlaps = (a, b) => {
+        return Math.abs(2 * a.left + a.width - 2 * b.left - b.width) < a.width + b.width
+          && Math.abs(2 * a.top + a.height - 2 * b.top - b.height) < a.height + b.height;
+      };
+
+      const hitsAny = (rect) => {
+        for (const p of placed) {
+          if (overlaps(rect, p)) return true;
+        }
+        return false;
+      };
+
+      const getWeightClass = (count) => {
+        if (max <= min) return 5;
+        return Math.round((count - min) / (max - min) * 9) + 1;
+      };
+
+      const colorFor = (idx, total) => {
+        if (total <= 1) return "hsl(20, 80%, 45%)";
+        const t = idx / (total - 1);
+        const hue = 20 + t * 200;
+        return `hsl(${hue.toFixed(0)}, 80%, 45%)`;
+      };
+
+      sorted.forEach((item, index) => {
+        const span = document.createElement("span");
+        span.textContent = item.word;
+        span.title = `${item.word} (${item.count})`;
+        span.style.color = colorFor(index, sorted.length);
+        wordCloud.appendChild(span);
+
+        let weight = getWeightClass(item.count);
+        let placedOk = false;
+
+        while (weight >= 1 && !placedOk) {
+          span.className = `w${weight}`;
+          const w = span.offsetWidth;
+          const h = span.offsetHeight;
+          let left = center.x - w / 2;
+          let top = center.y - h / 2;
+          span.style.position = "absolute";
+          span.style.left = `${left}px`;
+          span.style.top = `${top}px`;
+
+          let angle = Math.random() * 6.28;
+          let radius = 0;
+          let attempts = 0;
+
+          while (attempts < maxAttempts) {
+            const rectNow = { left, top, width: w, height: h };
+            if (!hitsAny(rectNow)) {
+              placedOk = true;
+              break;
+            }
+            radius += step;
+            angle += (index % 2 === 0 ? 1 : -1) * step;
+            left = center.x - (w / 2) + (radius * Math.cos(angle)) * aspect;
+            top = center.y + (radius * Math.sin(angle)) - (h / 2);
+            attempts++;
+            if (radius > maxRadius) break;
+          }
+
+          if (!placedOk || left < 0 || top < 0 || (left + w) > width || (top + h) > height) {
+            placedOk = false;
+            weight -= 1;
+            continue;
+          }
+
+          span.style.left = `${left}px`;
+          span.style.top = `${top}px`;
+          placed.push({ left, top, width: w, height: h });
+        }
+
+        if (!placedOk) {
+          span.remove();
+        }
+      });
+
+      const topLabel = data.words.length === data.limit ? `Top ${data.limit}` : `Top ${data.words.length}`;
+      wordCloudMeta.textContent = `${topLabel} \u2022 ${data.uniqueCount} \u00fanicas`;
     }
 
     function renderTimeline(cues, stats) {
@@ -1125,6 +1348,7 @@
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
+        renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         return false;
@@ -1136,6 +1360,7 @@
         lastCleanText = parsed.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
+        renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
@@ -1168,6 +1393,7 @@
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
+        renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         return false;
@@ -1179,6 +1405,7 @@
         lastCleanText = lastDocx.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
+        renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
@@ -1239,6 +1466,7 @@
       lastCleanText = "";
       lastProcessed = false;
       renderStats(lastStats);
+      renderWordCloud(lastCues, lastCleanText);
       renderTimeline(lastCues, lastStats);
     });
 
@@ -1285,6 +1513,7 @@
 
     updateTitlePill();
     renderStats(lastStats);
+    renderWordCloud(lastCues, lastCleanText);
     renderTimeline(lastCues, lastStats);
   </script>
 </body>

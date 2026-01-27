@@ -17,6 +17,7 @@ Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCle
 - Gera um resumo em texto puro, tabela e transcrição limpa.
 - Permite copiar o resultado e baixar um `.txt`.
 - Exibe métricas visuais no próprio HTML.
+- Gera uma nuvem de palavras com as 30 palavras mais repetidas.
 
 ## Como usar
 1. Abra `index.html` no navegador.
