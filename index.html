@@ -212,6 +212,17 @@
     .metricSection{margin-top:16px}
     .metricSection:first-of-type{margin-top:10px}
     .metricSection table{margin-top:0}
+    .ngramGrid{display:grid; gap:12px; grid-template-columns:1fr}
+    @media (min-width: 760px){
+      .ngramGrid{grid-template-columns:1fr 1fr}
+    }
+    .ngramTableWord{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      font-family: var(--mono);
+      font-size:12px;
+    }
     .chartHeader{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px}
     .chartTitle{font-size:12px; font-weight:800; opacity:0.92}
     .chartMeta{font-size:12px; color: var(--muted)}
@@ -430,6 +441,71 @@
 
           <div class="metricSection">
             <div class="chartHeader">
+              <div class="chartTitle">Variedade de vocabul&aacute;rio (TTR e MTLD)</div>
+              <div class="chartMeta" id="lexicalMeta">TTR mede variedade imediata; MTLD mede variedade com mais estabilidade.</div>
+            </div>
+            <table class="metricsTable" aria-label="Tabela de diversidade lexical">
+              <colgroup>
+                <col style="width:38%">
+                <col style="width:18%">
+                <col style="width:18%">
+                <col>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Participante</th>
+                  <th>Tipos</th>
+                  <th>TTR</th>
+                  <th>MTLD</th>
+                </tr>
+              </thead>
+              <tbody id="lexicalBody">
+                <tr><td colspan="4" class="emptyState">Sem dados</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="metricSection">
+            <div class="chartHeader">
+              <div class="chartTitle">Express&otilde;es mais frequentes (bi e tri-gramas)</div>
+              <div class="chartMeta" id="ngramMeta">Bi-grama = 2 palavras em sequ&ecirc;ncia; tri-grama = 3.</div>
+            </div>
+            <div class="ngramGrid">
+              <table class="metricsTable" aria-label="Tabela de bigramas">
+                <colgroup>
+                  <col>
+                  <col style="width:24%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Bi-grama</th>
+                    <th>Freq.</th>
+                  </tr>
+                </thead>
+                <tbody id="bigramBody">
+                  <tr><td colspan="2" class="emptyState">Sem dados</td></tr>
+                </tbody>
+              </table>
+              <table class="metricsTable" aria-label="Tabela de trigramas">
+                <colgroup>
+                  <col>
+                  <col style="width:24%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Tri-grama</th>
+                    <th>Freq.</th>
+                  </tr>
+                </thead>
+                <tbody id="trigramBody">
+                  <tr><td colspan="2" class="emptyState">Sem dados</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="metricSection">
+            <div class="chartHeader">
               <div class="chartTitle">Nuvem de palavras</div>
               <div class="chartMeta" id="wordCloudMeta">Sem dados</div>
             </div>
@@ -487,6 +563,11 @@
     const statsBody = $("statsBody");
     const turnsBody = $("turnsBody");
     const turnsMeta = $("turnsMeta");
+    const lexicalBody = $("lexicalBody");
+    const lexicalMeta = $("lexicalMeta");
+    const ngramMeta = $("ngramMeta");
+    const bigramBody = $("bigramBody");
+    const trigramBody = $("trigramBody");
     const timelineChart = $("timelineChart");
     const timelineLegend = $("timelineLegend");
     const timelineMeta = $("timelineMeta");
@@ -496,6 +577,8 @@
     const wordCloudMeta = $("wordCloudMeta");
 
     const EMPTY_METRICS_TEXT = "Sem dados";
+    const LEXICAL_META_HELP = "TTR = tipos/total de palavras (sensivel ao tamanho do texto). MTLD = diversidade mais estavel; quanto maior, maior a variedade.";
+    const NGRAM_META_HELP = "Bi-grama = 2 palavras em sequencia; tri-grama = 3.";
 
     function setStatus(msg, tone = "muted") {
       statusEl.textContent = msg;
@@ -568,6 +651,9 @@
     const MIN_ESTIMATED_SECONDS = 0.6;
     const WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const WORD_CLOUD_MAX = 30;
+    const LEXICAL_MTLD_THRESHOLD = 0.72;
+    const LEXICAL_MTLD_MIN_TOKENS = 20;
+    const NGRAM_TOP_LIMIT = 10;
     const WORD_CLOUD_STOP = new Set(['a', 'à', 'adeus', 'agora', 'aí', 'ainda', 'além', 'algo', 'alguém', 'algum', 'alguma', 'algumas', 'alguns', 'ali', 'ampla', 'amplas', 'amplo', 'amplos', 'ano', 'anos', 'ante', 'antes', 'ao', 'aos', 'apenas', 'apoio', 'após', 'aquela', 'aquelas', 'aquele', 'aqueles', 'aqui', 'aquilo', 'área', 'as', 'às', 'assim', 'até', 'atrás', 'através', 'baixo', 'bastante', 'bem', 'boa', 'boas', 'bom', 'bons', 'breve', 'cá', 'cada', 'catorze', 'cedo', 'cento', 'certamente', 'certeza', 'cima', 'cinco', 'coisa', 'coisas', 'com', 'como', 'conselho', 'contra', 'contudo', 'custa', 'da', 'dá', 'dão', 'daquela', 'daquelas', 'daquele', 'daqueles', 'dar', 'das', 'de', 'debaixo', 'dela', 'delas', 'dele', 'deles', 'demais', 'dentro', 'depois', 'desde', 'dessa', 'dessas', 'desse', 'desses', 'desta', 'destas', 'deste', 'destes', 'deve', 'devem', 'devendo', 'dever', 'deverá', 'deverão', 'deveria', 'deveriam', 'devia', 'deviam', 'dez', 'dezanove', 'dezasseis', 'dezassete', 'dezoito', 'dia', 'diante', 'disse', 'disso', 'disto', 'dito', 'diz', 'dizem', 'dizer', 'do', 'dois', 'dos', 'doze', 'duas', 'dúvida', 'e', 'é', 'ela', 'elas', 'ele', 'eles', 'em', 'embora', 'enquanto', 'entre', 'era', 'eram', 'éramos', 'és', 'essa', 'essas', 'esse', 'esses', 'esta', 'está', 'estamos', 'estão', 'estar', 'estas', 'estás', 'estava', 'estavam', 'estávamos', 'este', 'esteja', 'estejam', 'estejamos', 'estes', 'esteve', 'estive', 'estivemos', 'estiver', 'estivera', 'estiveram', 'estivéramos', 'estiverem', 'estivermos', 'estivesse', 'estivessem', 'estivéssemos', 'estiveste', 'estivestes', 'estou', 'etc', 'eu', 'exemplo', 'faço', 'falta', 'favor', 'faz', 'fazeis', 'fazem', 'fazemos', 'fazendo', 'fazer', 'fazes', 'feita', 'feitas', 'feito', 'feitos', 'fez', 'fim', 'final', 'foi', 'fomos', 'for', 'fora', 'foram', 'fôramos', 'forem', 'forma', 'formos', 'fosse', 'fossem', 'fôssemos', 'foste', 'fostes', 'fui', 'geral', 'grande', 'grandes', 'grupo', 'há', 'haja', 'hajam', 'hajamos', 'hão', 'havemos', 'havia', 'hei', 'hoje', 'hora', 'horas', 'houve', 'houvemos', 'houver', 'houvera', 'houverá', 'houveram', 'houvéramos', 'houverão', 'houverei', 'houverem', 'houveremos', 'houveria', 'houveriam', 'houveríamos', 'houvermos', 'houvesse', 'houvessem', 'houvéssemos', 'isso', 'isto', 'já', 'la', 'lá', 'lado', 'lhe', 'lhes', 'lo', 'local', 'logo', 'longe', 'lugar', 'maior', 'maioria', 'mais', 'mal', 'mas', 'máximo', 'me', 'meio', 'menor', 'menos', 'mês', 'meses', 'mesma', 'mesmas', 'mesmo', 'mesmos', 'meu', 'meus', 'mil', 'minha', 'minhas', 'momento', 'muita', 'muitas', 'muito', 'muitos', 'na', 'nada', 'não', 'naquela', 'naquelas', 'naquele', 'naqueles', 'nas', 'nem', 'nenhum', 'nenhuma', 'nessa', 'nessas', 'nesse', 'nesses', 'nesta', 'nestas', 'neste', 'nestes', 'ninguém', 'nível', 'no', 'noite', 'nome', 'nos', 'nós', 'nossa', 'nossas', 'nosso', 'nossos', 'nova', 'novas', 'nove', 'novo', 'novos', 'num', 'numa', 'número', 'nunca', 'o', 'obra', 'obrigada', 'obrigado', 'oitava', 'oitavo', 'oito', 'onde', 'ontem', 'onze', 'os', 'ou', 'outra', 'outras', 'outro', 'outros', 'para', 'parece', 'parte', 'partir', 'paucas', 'pela', 'pelas', 'pelo', 'pelos', 'pequena', 'pequenas', 'pequeno', 'pequenos', 'per', 'perante', 'perto', 'pode', 'pude', 'pôde', 'podem', 'podendo', 'poder', 'poderia', 'poderiam', 'podia', 'podiam', 'põe', 'põem', 'pois', 'ponto', 'pontos', 'por', 'porém', 'porque', 'porquê', 'posição', 'possível', 'possivelmente', 'posso', 'pouca', 'poucas', 'pouco', 'poucos', 'primeira', 'primeiras', 'primeiro', 'primeiros', 'própria', 'próprias', 'próprio', 'próprios', 'próxima', 'próximas', 'próximo', 'próximos', 'pude', 'puderam', 'quais', 'quáis', 'qual', 'quando', 'quanto', 'quantos', 'quarta', 'quarto', 'quatro', 'que', 'quê', 'quem', 'quer', 'quereis', 'querem', 'queremas', 'queres', 'quero', 'questão', 'quinta', 'quinto', 'quinze', 'relação', 'sabe', 'sabem', 'são', 'se', 'segunda', 'segundo', 'sei', 'seis', 'seja', 'sejam', 'sejamos', 'sem', 'sempre', 'sendo', 'ser', 'será', 'serão', 'serei', 'seremos', 'seria', 'seriam', 'seríamos', 'sete', 'sétima', 'sétimo', 'seu', 'seus', 'sexta', 'sexto', 'si', 'sido', 'sim', 'sistema', 'só', 'sob', 'sobre', 'sois', 'somos', 'sou', 'sua', 'suas', 'tal', 'talvez', 'também', 'tampouco', 'tanta', 'tantas', 'tanto', 'tão', 'tarde', 'te', 'tem', 'tém', 'têm', 'temos', 'tendes', 'tendo', 'tenha', 'tenham', 'tenhamos', 'tenho', 'tens', 'ter', 'terá', 'terão', 'terceira', 'terceiro', 'terei', 'teremos', 'teria', 'teriam', 'teríamos', 'teu', 'teus', 'teve', 'ti', 'tido', 'tinha', 'tinham', 'tínhamos', 'tive', 'tivemos', 'tiver', 'tivera', 'tiveram', 'tivéramos', 'tiverem', 'tivermos', 'tivesse', 'tivessem', 'tivéssemos', 'tiveste', 'tivestes', 'toda', 'todas', 'todavia', 'todo', 'todos', 'trabalho', 'três', 'treze', 'tu', 'tua', 'tuas', 'tudo', 'última', 'últimas', 'último', 'últimos', 'um', 'uma', 'umas', 'uns', 'vai', 'vais', 'vão', 'vários', 'vem', 'vêm', 'vendo', 'vens', 'ver', 'vez', 'vezes', 'viagem', 'vindo', 'vinte', 'vir', 'você', 'vocês', 'vos', 'vós', 'vossa', 'vossas', 'vosso', 'vossos', 'zero', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_', 'mhm' ]);
 
 
@@ -597,6 +683,25 @@
         .replace(/[^0-9a-zA-Z\u00C0-\u017F]+/g, " ")
         .split(/\s+/)
         .filter(Boolean);
+    }
+
+    function isNumericToken(token) {
+      return /^\d+$/.test(token);
+    }
+
+    function isWordCloudToken(token) {
+      if (!token || token.length < 3) return false;
+      if (isNumericToken(token)) return false;
+      if (WORD_CLOUD_STOP.has(token)) return false;
+      return true;
+    }
+
+    function tokenizeLexical(text) {
+      return tokenizeWords(text).filter((token) => !isNumericToken(token));
+    }
+
+    function tokenizeNgram(text) {
+      return tokenizeWords(text).filter(isWordCloudToken);
     }
 
     function parseTimeToSeconds(ts) {
@@ -792,35 +897,189 @@
         .replace(/'/g, "&#039;");
     }
 
-    function collectTextSegments(cues, cleanText) {
+    function parseSpeakerLine(line) {
+      const cleanLine = normalizeSpaces(String(line || ""));
+      if (!cleanLine) return null;
+
+      const arrowIdx = cleanLine.indexOf(">");
+      if (arrowIdx > 0 && arrowIdx < 80) {
+        const speaker = normalizeSpeakerName(cleanLine.slice(0, arrowIdx));
+        const text = normalizeSpaces(cleanLine.slice(arrowIdx + 1));
+        if (speaker && /\p{L}/u.test(speaker) && text) return { speaker, text };
+      }
+
+      const m = cleanLine.match(/^(.{2,80}?)[\uFF1A:]\s*(.+)$/);
+      if (!m) return null;
+      const speaker = normalizeSpeakerName(m[1]);
+      const text = normalizeSpaces(m[2]);
+      return (speaker && /\p{L}/u.test(speaker) && text) ? { speaker, text } : null;
+    }
+
+    function collectSpeakerSegments(cues, cleanText) {
       const segments = [];
-      if (cues && cues.length) {
-        for (const cue of cues) {
-          const speakers = cue.speakers || [];
-          for (const sp of speakers) {
-            if (sp && sp.text) segments.push(sp.text);
-          }
+      const cueList = Array.isArray(cues) ? cues : [];
+      for (const cue of cueList) {
+        const speakers = cue.speakers || [];
+        for (const sp of speakers) {
+          const speaker = normalizeSpeakerName(sp && sp.name);
+          const text = normalizeSpaces(sp && sp.text ? sp.text : "");
+          if (speaker && text) segments.push({ speaker, text });
         }
       }
+
       if (!segments.length && cleanText) {
         const lines = String(cleanText).split("\n").map(l => l.trim()).filter(Boolean);
         for (const line of lines) {
-          let content = line;
-          const arrowIdx = line.indexOf(">");
-          if (arrowIdx > 0 && arrowIdx < 60) {
-            const after = line.slice(arrowIdx + 1).trim();
-            if (after) content = after;
-          } else {
-            const colonIdx = line.indexOf(":");
-            if (colonIdx > 0 && colonIdx < 60) {
-              const after = line.slice(colonIdx + 1).trim();
-              if (after) content = after;
-            }
-          }
-          if (content) segments.push(content);
+          const parsed = parseSpeakerLine(line);
+          if (parsed) segments.push(parsed);
         }
       }
       return segments;
+    }
+
+    function collectTextSegments(cues, cleanText) {
+      const segments = [];
+      const cueList = Array.isArray(cues) ? cues : [];
+      for (const cue of cueList) {
+        const speakers = cue.speakers || [];
+        for (const sp of speakers) {
+          const text = normalizeSpaces(sp && sp.text ? sp.text : "");
+          if (text) segments.push(text);
+        }
+      }
+
+      if (!segments.length && cleanText) {
+        const lines = String(cleanText).split("\n").map(l => l.trim()).filter(Boolean);
+        for (const line of lines) {
+          const parsed = parseSpeakerLine(line);
+          if (parsed) {
+            segments.push(parsed.text);
+            continue;
+          }
+          segments.push(line);
+        }
+      }
+      return segments;
+    }
+
+    function computeMtldPass(tokens, threshold) {
+      let factors = 0;
+      let tokenCount = 0;
+      const types = new Set();
+
+      for (const token of tokens) {
+        tokenCount += 1;
+        types.add(token);
+        const ttr = types.size / tokenCount;
+        if (ttr <= threshold) {
+          factors += 1;
+          tokenCount = 0;
+          types.clear();
+        }
+      }
+
+      if (tokenCount > 0) {
+        const ttr = types.size / tokenCount;
+        const denominator = 1 - threshold;
+        if (denominator > 0) {
+          factors += (1 - ttr) / denominator;
+        }
+      }
+      if (factors <= 0) return 0;
+      return tokens.length / factors;
+    }
+
+    function computeMtld(tokens, threshold = LEXICAL_MTLD_THRESHOLD) {
+      if (!tokens || !tokens.length) return 0;
+      const forward = computeMtldPass(tokens, threshold);
+      const backward = computeMtldPass(tokens.slice().reverse(), threshold);
+      const value = (forward + backward) / 2;
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function buildLexicalMetrics(tokens) {
+      const total = tokens.length;
+      const unique = new Set(tokens).size;
+      const ttr = total > 0 ? unique / total : 0;
+      const mtld = total >= LEXICAL_MTLD_MIN_TOKENS ? computeMtld(tokens) : null;
+      return { tokens: total, unique, ttr, mtld };
+    }
+
+    function computeLexicalStats(cues, cleanText) {
+      const speakerSegments = collectSpeakerSegments(cues, cleanText);
+      const tokensBySpeaker = new Map();
+
+      for (const segment of speakerSegments) {
+        const tokens = tokenizeLexical(segment.text);
+        if (!tokens.length) continue;
+        if (!tokensBySpeaker.has(segment.speaker)) {
+          tokensBySpeaker.set(segment.speaker, []);
+        }
+        tokensBySpeaker.get(segment.speaker).push(...tokens);
+      }
+
+      const meetingTokens = [];
+      if (speakerSegments.length) {
+        for (const segment of speakerSegments) {
+          const tokens = tokenizeLexical(segment.text);
+          if (tokens.length) meetingTokens.push(...tokens);
+        }
+      } else {
+        const textSegments = collectTextSegments(cues, cleanText);
+        for (const segment of textSegments) {
+          const tokens = tokenizeLexical(segment);
+          if (tokens.length) meetingTokens.push(...tokens);
+        }
+      }
+
+      const rows = Array.from(tokensBySpeaker.entries())
+        .map(([name, tokens]) => ({
+          name,
+          ...buildLexicalMetrics(tokens),
+        }))
+        .sort((a, b) => (b.tokens - a.tokens) || a.name.localeCompare(b.name, "pt-BR"));
+
+      return {
+        meeting: buildLexicalMetrics(meetingTokens),
+        rows,
+      };
+    }
+
+    function computeTopNgrams(cues, cleanText, n, topLimit = NGRAM_TOP_LIMIT) {
+      const segments = collectTextSegments(cues, cleanText);
+      const freq = new Map();
+      let totalCount = 0;
+
+      for (const segment of segments) {
+        const tokens = tokenizeNgram(segment);
+        if (tokens.length < n) continue;
+        for (let i = 0; i <= tokens.length - n; i++) {
+          const gramTokens = tokens.slice(i, i + n);
+          if (new Set(gramTokens).size === 1) continue;
+          const gram = gramTokens.join(" ");
+          freq.set(gram, (freq.get(gram) || 0) + 1);
+          totalCount += 1;
+        }
+      }
+
+      const rows = Array.from(freq.entries())
+        .map(([gram, count]) => ({ gram, count }))
+        .sort((a, b) => (b.count - a.count) || a.gram.localeCompare(b.gram, "pt-BR"));
+
+      return {
+        n,
+        rows: rows.slice(0, topLimit),
+        uniqueCount: freq.size,
+        totalCount,
+        limit: topLimit,
+      };
+    }
+
+    function computeNgramStats(cues, cleanText) {
+      return {
+        bigrams: computeTopNgrams(cues, cleanText, 2, NGRAM_TOP_LIMIT),
+        trigrams: computeTopNgrams(cues, cleanText, 3, NGRAM_TOP_LIMIT),
+      };
     }
 
     function computeWordCloudData(cues, cleanText) {
@@ -829,11 +1088,8 @@
       let totalTokens = 0;
 
       for (const segment of segments) {
-        const tokens = tokenizeWords(segment);
+        const tokens = tokenizeNgram(segment);
         for (const token of tokens) {
-          if (token.length < 3) continue;
-          if (/^\d+$/.test(token)) continue;
-          if (WORD_CLOUD_STOP.has(token)) continue;
           freq.set(token, (freq.get(token) || 0) + 1);
           totalTokens++;
         }
@@ -1239,14 +1495,15 @@
       return { cleanText: cleanLines.join("\n"), cues };
     }
 
-    function computeStats(cues) {
+    function computeStats(cues, cleanText = "") {
+      const cueList = Array.isArray(cues) ? cues : [];
       let minS = Infinity;
       let maxE = -Infinity;
       const personSeconds = new Map();
       const personTurns = new Map();
       const presence = new Set();
 
-      for (const cue of cues) {
+      for (const cue of cueList) {
         if (!Number.isFinite(cue.startS) || !Number.isFinite(cue.endS)) continue;
         minS = Math.min(minS, cue.startS);
         maxE = Math.max(maxE, cue.endS);
@@ -1294,6 +1551,9 @@
         r.turnPct = totalTurns > 0 ? (r.turns / totalTurns) * 100 : 0;
       }
 
+      const lexical = computeLexicalStats(cueList, cleanText);
+      const ngrams = computeNgramStats(cueList, cleanText);
+
       return {
         totalMeeting,
         totalSpeech,
@@ -1301,6 +1561,27 @@
         presence: Array.from(presence).sort((a, b) => a.localeCompare(b, undefined)),
         rows,
         turnRows,
+        lexical,
+        ngrams,
+      };
+    }
+
+    function createEmptyStats() {
+      return {
+        totalMeeting: 0,
+        totalSpeech: 0,
+        totalTurns: 0,
+        presence: [],
+        rows: [],
+        turnRows: [],
+        lexical: {
+          meeting: { tokens: 0, unique: 0, ttr: 0, mtld: null },
+          rows: [],
+        },
+        ngrams: {
+          bigrams: { n: 2, rows: [], uniqueCount: 0, totalCount: 0, limit: NGRAM_TOP_LIMIT },
+          trigrams: { n: 3, rows: [], uniqueCount: 0, totalCount: 0, limit: NGRAM_TOP_LIMIT },
+        },
       };
     }
 
@@ -1384,6 +1665,99 @@
           <td><div class="bar" title="${pctStr}"><div style="width:${w.toFixed(1)}%"></div></div></td>
         `;
         turnsBody.appendChild(tr);
+      }
+    }
+
+    function formatRatioPercent(value) {
+      if (!Number.isFinite(value)) return "\u2014";
+      return `${(value * 100).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+    }
+
+    function formatMtldValue(value) {
+      if (!Number.isFinite(value)) return "\u2014";
+      return Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderLexical(stats) {
+      lexicalBody.innerHTML = "";
+      lexicalMeta.textContent = LEXICAL_META_HELP;
+
+      const lexical = stats && stats.lexical ? stats.lexical : null;
+      if (!lastProcessed || !lexical) {
+        renderEmptyRow(lexicalBody, 4);
+        return;
+      }
+
+      const meeting = lexical.meeting || { tokens: 0, unique: 0, ttr: 0, mtld: null };
+      if (meeting.tokens > 0) {
+        lexicalMeta.textContent = `${LEXICAL_META_HELP} \u2022 Reuni\u00e3o: TTR ${formatRatioPercent(meeting.ttr)} \u2022 MTLD ${formatMtldValue(meeting.mtld)}`;
+      }
+
+      let rendered = 0;
+      if (meeting.tokens > 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>Reuni\u00e3o (geral)</strong></td>
+          <td>${formatCount(meeting.unique)}</td>
+          <td>${formatRatioPercent(meeting.ttr)}</td>
+          <td>${formatMtldValue(meeting.mtld)}</td>
+        `;
+        lexicalBody.appendChild(tr);
+        rendered += 1;
+      }
+
+      const rows = Array.isArray(lexical.rows) ? lexical.rows : [];
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(row.name)}</strong></td>
+          <td>${formatCount(row.unique)}</td>
+          <td>${formatRatioPercent(row.ttr)}</td>
+          <td>${formatMtldValue(row.mtld)}</td>
+        `;
+        lexicalBody.appendChild(tr);
+        rendered += 1;
+      }
+
+      if (!rendered) {
+        renderEmptyRow(lexicalBody, 4);
+      }
+    }
+
+    function renderNgramRows(tbody, rows) {
+      tbody.innerHTML = "";
+      if (!rows || !rows.length) {
+        renderEmptyRow(tbody, 2);
+        return;
+      }
+
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="ngramTableWord" title="${escapeHtml(row.gram)}">${escapeHtml(row.gram)}</td>
+          <td>${formatCount(row.count)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderNgrams(stats) {
+      const ngrams = stats && stats.ngrams ? stats.ngrams : null;
+      ngramMeta.textContent = NGRAM_META_HELP;
+
+      if (!lastProcessed || !ngrams) {
+        renderNgramRows(bigramBody, []);
+        renderNgramRows(trigramBody, []);
+        return;
+      }
+
+      const bigrams = ngrams.bigrams || { rows: [], uniqueCount: 0 };
+      const trigrams = ngrams.trigrams || { rows: [], uniqueCount: 0 };
+      renderNgramRows(bigramBody, bigrams.rows);
+      renderNgramRows(trigramBody, trigrams.rows);
+
+      if ((bigrams.uniqueCount || 0) > 0 || (trigrams.uniqueCount || 0) > 0) {
+        ngramMeta.textContent = `${NGRAM_META_HELP} \u2022 Bi: ${formatCount(bigrams.uniqueCount || 0)} \u00fanicos \u2022 Tri: ${formatCount(trigrams.uniqueCount || 0)} \u00fanicos`;
       }
     }
 
@@ -1615,6 +1989,59 @@
       return lines.join("\n");
     }
 
+    function buildPlainTextLexicalTable(stats) {
+      const lexical = stats.lexical || {};
+      const meeting = lexical.meeting || { tokens: 0, unique: 0, ttr: 0, mtld: null };
+      const rows = [];
+
+      if (meeting.tokens > 0) {
+        rows.push({ name: "Reuniao (geral)", ...meeting });
+      }
+      for (const row of (lexical.rows || [])) {
+        rows.push(row);
+      }
+      if (!rows.length) return EMPTY_METRICS_TEXT;
+
+      const header1 = "Participante";
+      const header2 = "Tipos";
+      const header3 = "TTR";
+      const header4 = "MTLD";
+
+      const nameW = Math.min(40, Math.max(header1.length, ...rows.map(r => String(r.name).length)));
+      const typeW = Math.max(header2.length, ...rows.map(r => formatCount(r.unique).length));
+      const ttrW = Math.max(header3.length, ...rows.map(r => formatRatioPercent(r.ttr).length));
+      const mtldW = Math.max(header4.length, ...rows.map(r => formatMtldValue(r.mtld).length));
+
+      const lines = [];
+      lines.push(`${padRight(header1, nameW)}  ${padRight(header2, typeW)}  ${padRight(header3, ttrW)}  ${padRight(header4, mtldW)}`);
+      lines.push(`${"-".repeat(nameW)}  ${"-".repeat(typeW)}  ${"-".repeat(ttrW)}  ${"-".repeat(mtldW)}`);
+
+      for (const row of rows) {
+        lines.push(`${padRight(row.name, nameW)}  ${padRight(formatCount(row.unique), typeW)}  ${padRight(formatRatioPercent(row.ttr), ttrW)}  ${padRight(formatMtldValue(row.mtld), mtldW)}`);
+      }
+      return lines.join("\n");
+    }
+
+    function buildPlainTextNgramTable(rows) {
+      if (!rows || !rows.length) return EMPTY_METRICS_TEXT;
+
+      const header1 = "N-grama";
+      const header2 = "Freq.";
+      const ngramW = Math.min(64, Math.max(header1.length, ...rows.map(r => String(r.gram).length)));
+      const freqW = Math.max(header2.length, ...rows.map(r => formatCount(r.count).length));
+
+      const lines = [];
+      lines.push(`${padRight(header1, ngramW)}  ${padRight(header2, freqW)}`);
+      lines.push(`${"-".repeat(ngramW)}  ${"-".repeat(freqW)}`);
+
+      for (const row of rows) {
+        const gram = String(row.gram);
+        const clipped = gram.length > ngramW ? `${gram.slice(0, Math.max(0, ngramW - 3))}...` : gram;
+        lines.push(`${padRight(clipped, ngramW)}  ${padRight(formatCount(row.count), freqW)}`);
+      }
+      return lines.join("\n");
+    }
+
     function buildPlainTextSummary(stats) {
       const { title, notes } = getMeetingTitleParts();
       const startDT = buildMeetingDateTime();
@@ -1638,6 +2065,17 @@
       lines.push("");
       lines.push("Turnos por participante:");
       lines.push(buildPlainTextTurnsTable(stats));
+      lines.push("");
+      lines.push("Variedade de vocabulario (TTR e MTLD):");
+      lines.push("TTR = tipos/total de palavras (sensivel ao tamanho do texto).");
+      lines.push("MTLD = medida mais estavel da diversidade; quanto maior, maior a variedade.");
+      lines.push(buildPlainTextLexicalTable(stats));
+      lines.push("");
+      lines.push("Top bi-gramas (sequencias de 2 palavras):");
+      lines.push(buildPlainTextNgramTable(stats && stats.ngrams && stats.ngrams.bigrams ? stats.ngrams.bigrams.rows : []));
+      lines.push("");
+      lines.push("Top tri-gramas (sequencias de 3 palavras):");
+      lines.push(buildPlainTextNgramTable(stats && stats.ngrams && stats.ngrams.trigrams ? stats.ngrams.trigrams.rows : []));
       return lines.join("\n");
     }
 
@@ -1761,7 +2199,7 @@
     let activeSource = "vtt";
     let lastDocx = null;
 
-    let lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
+    let lastStats = createEmptyStats();
     let lastCues = [];
     let lastCleanText = "";
     let lastProcessed = false;
@@ -1782,12 +2220,14 @@
         outputEl.value = "";
         updateOutputInfo(outputEl.value);
         setOutStatus("\u2014", "muted");
-        lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
+        lastStats = createEmptyStats();
         lastCues = [];
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
         renderTurns(lastStats);
+        renderLexical(lastStats);
+        renderNgrams(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1795,12 +2235,14 @@
       }
       try {
         const parsed = parseVtt(raw);
-        lastStats = computeStats(parsed.cues);
+        lastStats = computeStats(parsed.cues, parsed.cleanText || "");
         lastCues = parsed.cues || [];
         lastCleanText = parsed.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
         renderTurns(lastStats);
+        renderLexical(lastStats);
+        renderNgrams(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1831,12 +2273,14 @@
         outputEl.value = "";
         updateOutputInfo(outputEl.value);
         setOutStatus("\u2014", "muted");
-        lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
+        lastStats = createEmptyStats();
         lastCues = [];
         lastCleanText = "";
         lastProcessed = false;
         renderStats(lastStats);
         renderTurns(lastStats);
+        renderLexical(lastStats);
+        renderNgrams(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1844,12 +2288,14 @@
       }
       try {
         const cues = buildDocxCuesFromSegments(lastDocx.segments);
-        lastStats = computeStats(cues);
+        lastStats = computeStats(cues, lastDocx.cleanText || "");
         lastCues = cues;
         lastCleanText = lastDocx.cleanText || "";
         lastProcessed = true;
         renderStats(lastStats);
         renderTurns(lastStats);
+        renderLexical(lastStats);
+        renderNgrams(lastStats);
         renderWordCloud(lastCues, lastCleanText);
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
@@ -1909,12 +2355,14 @@
       setOutStatus("\u2014", "muted");
       activeSource = "vtt";
       lastDocx = null;
-      lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
+      lastStats = createEmptyStats();
       lastCues = [];
       lastCleanText = "";
       lastProcessed = false;
       renderStats(lastStats);
       renderTurns(lastStats);
+      renderLexical(lastStats);
+      renderNgrams(lastStats);
       renderWordCloud(lastCues, lastCleanText);
       renderTimeline(lastCues, lastStats);
     });
@@ -1963,6 +2411,8 @@
     updateTitlePill();
     renderStats(lastStats);
     renderTurns(lastStats);
+    renderLexical(lastStats);
+    renderNgrams(lastStats);
     renderWordCloud(lastCues, lastCleanText);
     renderTimeline(lastCues, lastStats);
     updateOutputInfo(outputEl.value);

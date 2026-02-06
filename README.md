@@ -16,10 +16,17 @@ Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCle
   - VTT: usa timestamps dos cues.
   - DOCX: estima pela contagem de caracteres.
 - Calcula turnos (número de intervenções e % de turnos) por participante.
+- Calcula variedade de vocabulário por participante e na reunião:
+  - TTR (tipos/total de palavras, mais sensível ao tamanho do texto).
+  - MTLD (medida mais estável da diversidade lexical; quanto maior, maior a variedade).
 - Gera um resumo em texto puro, tabela e transcrição limpa.
 - Permite copiar o resultado e baixar um `.txt`.
 - Exibe métricas visuais no próprio HTML.
 - Gera uma nuvem de palavras com as 30 palavras mais repetidas.
+- Exibe expressões mais frequentes da reunião:
+  - Bi-gramas (sequências de 2 palavras).
+  - Tri-gramas (sequências de 3 palavras).
+  - Ignora repetições idênticas como `sim sim` e `não não não`.
 
 ## Como usar
 1. Abra `index.html` no navegador.
@@ -53,6 +60,8 @@ Texto...
 - **Resumo** com título, data/hora, participantes e tempos.
 - **Tabela em texto** (participante, tempo, % fala).
 - **Tabela em texto de turnos** (participante, turnos, % turnos).
+- **Tabela em texto de variedade de vocabulário** (tipos, TTR e MTLD por participante e reunião).
+- **Expressões mais frequentes em texto** (bi-gramas e tri-gramas, com filtro de repetições idênticas).
 - **Transcrição limpa** no formato `Nome>Texto`.
 - **Nomes padronizados** com capitalização consistente em VTT, DOCX e métricas.
 - **Indicadores de tamanho da saída**: total de caracteres e total de tokens estimados para uso com LLM (`1 token ~= 4 caracteres`).
