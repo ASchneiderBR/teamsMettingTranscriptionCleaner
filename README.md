@@ -27,13 +27,19 @@ Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCle
   - Bi-gramas (sequências de 2 palavras).
   - Tri-gramas (sequências de 3 palavras).
   - Ignora repetições idênticas como `sim sim` e `não não não`.
+- Inclui botão **Colar** na área de entrada (cola direto da área de transferência).
+- Layout responsivo melhorado para modo vertical mobile (1 coluna, centralizado, com padding lateral reduzido).
+- Gráfico **Fala ao longo do tempo** com resolução dinâmica pela largura disponível:
+  - Mantém largura visual das barras mais estável.
+  - Ajusta a janela entre **2 e 5 minutos** (maior janela em áreas menores).
 
 ## Como usar
 1. Abra `index.html` no navegador.
-2. Carregue um arquivo `.vtt` ou `.docx` (ou cole o VTT no campo de entrada).
+2. Carregue um arquivo `.vtt` ou `.docx` (ou use o botão **Colar** no card de entrada para colar da área de transferência).
 3. (Opcional) informe data, horário de início, título e observações.
 4. Clique em **Processar**.
-5. Copie ou baixe o TXT gerado.
+5. Use **Limpar** para resetar os dados quando necessário.
+6. Copie ou baixe o TXT gerado.
 
 ## Entrada esperada (VTT)
 O parser tenta lidar com VTTs do Teams no formato:

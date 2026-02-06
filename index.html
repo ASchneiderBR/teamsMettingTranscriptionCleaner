@@ -51,7 +51,8 @@
       }
     }
     *{box-sizing:border-box}
-    body{margin:0; padding:28px; font-family: var(--sans); font-size:14px; line-height:1.5; background: transparent; color: var(--fg); position: relative; overflow-x:hidden}
+    html, body{max-width:100%; overflow-x:hidden}
+    body{margin:0; padding:0; font-family: var(--sans); font-size:14px; line-height:1.5; background: transparent; color: var(--fg); position: relative; overflow-x:hidden}
     body::before{
       content:"";
       position: fixed;
@@ -59,7 +60,7 @@
       background: var(--page);
       z-index:-1;
     }
-    .wrap{max-width: 1120px; margin:0 auto}
+    .wrap{width:100%; max-width:1120px; margin:0 auto; padding:28px 28px 18px}
 
     .top{display:flex; flex-direction:column; gap:10px; margin-bottom:16px}
     h1{font-size:20px; margin:0; letter-spacing:0.2px}
@@ -67,11 +68,42 @@
 
     .topHeading{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:12px}
     .topHeading h1{flex:1 1 320px}
-    .topHeading button{flex-shrink:0}
+    .topActions{display:flex; align-items:center; gap:8px; flex-shrink:0}
+    .repoBadge{
+      display:inline-flex;
+      align-items:center;
+      line-height:0;
+      opacity:0.9;
+      transition: opacity 0.16s ease, transform 0.12s ease;
+    }
+    .repoBadge img{display:block; height:20px}
+    .repoBadge:hover{opacity:1}
+    .repoBadge:active{transform: translateY(1px)}
     .topDesc{display:flex; flex-direction:column; gap:4px}
-    .pillGroup{display:flex; gap:8px; flex-wrap:wrap}
+    .pillGroup{display:flex; gap:8px; flex-wrap:wrap; min-width:0}
+    .siteCredit{
+      margin:18px 2px 0;
+      font-size:12px;
+      color: var(--muted);
+      text-align:center;
+    }
 
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background: rgba(91, 95, 199, 0.08); font-size:12px; color: var(--muted); white-space:nowrap}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(91, 95, 199, 0.08);
+      font-size:12px;
+      color: var(--muted);
+      white-space:nowrap;
+      min-width:0;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
     .kbd{font-family: var(--mono); border:1px solid var(--border2); border-bottom-width:2px; padding:1px 6px; border-radius:9px; font-size:12px; opacity:0.95}
 
     .stack{display:flex; flex-direction:column; gap:18px; margin-top:16px}
@@ -80,7 +112,8 @@
       gap:18px;
       grid-template-columns: 1fr;
     }
-    .colStack{display:flex; flex-direction:column; gap:18px}
+    .colStack{display:flex; flex-direction:column; gap:18px; min-width:0}
+    .mainGrid > *{min-width:0}
     @media (min-width: 980px){
       .mainGrid{
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -95,6 +128,30 @@
     @media (min-width: 720px){
       .row.cols2{grid-template-columns: 1fr 1fr}
       .row.cols3{grid-template-columns: 1fr 1fr 1fr}
+    }
+    .metadataRow > div{
+      display:grid;
+      grid-template-rows: 2.9em auto;
+      align-items:start;
+    }
+    .metadataRow label{
+      margin:0 0 6px;
+      line-height:1.25;
+      overflow:hidden;
+    }
+    .metadataRow input[type="text"]{
+      height:44px;
+    }
+    @media (max-width: 719px){
+      .metadataRow > div{
+        display:block;
+      }
+      .metadataRow label{
+        margin:0 0 6px;
+      }
+      .metadataRow input[type="text"]{
+        height:auto;
+      }
     }
 
     label{display:block; font-weight:600; font-size:12px; margin:0 0 6px; opacity:0.92}
@@ -171,6 +228,30 @@
       .dropzoneActions{width:100%}
       .dropzoneActions button{width:100%}
     }
+    @media (max-width: 980px){
+      .wrap{
+        width:100%;
+        max-width:760px;
+        margin:0 auto;
+        padding:12px 10px 14px;
+      }
+      .top, .stack, .mainGrid, .colStack, .card, .metricSection, .metricsSticky{min-width:0}
+      .topActions{margin-left:auto}
+      .dropzone{flex-direction:column; align-items:flex-start}
+      .dropzoneActions{width:100%}
+      .dropzoneActions button{width:100%}
+      table{max-width:100%}
+      th, td{word-break:break-word}
+      th{white-space:normal}
+    }
+    @media (max-width: 700px){
+      .topHeading h1{
+        flex:1 1 auto;
+        min-width:0;
+      }
+      .card{padding:14px}
+      .pill{white-space:normal}
+    }
     .dropMeta{margin-top:6px; font-size:12px; color: var(--muted)}
     .visuallyHidden{
       position:absolute;
@@ -231,8 +312,9 @@
       border:1px solid var(--border); border-radius:14px;
       background: linear-gradient(to top, rgba(127,127,127,0.12) 1px, transparent 1px);
       background-size: 100% 25%;
+      overflow:hidden;
     }
-    .chartBar{flex:1 1 0; display:flex; flex-direction:column-reverse; min-width:2px; height:100%}
+    .chartBar{flex:1 1 0; display:flex; flex-direction:column-reverse; min-width:0; height:100%}
     .chartSeg{width:100%; min-height:1px}
     .chartAxis{display:flex; justify-content:space-between; font-size:12px; color: var(--muted); margin-top:6px}
     .legend{display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:8px}
@@ -293,7 +375,19 @@
     <div class="top">
       <div class="topHeading">
         <h1>Limpador de transcri&ccedil;&atilde;o (.vtt/.docx) &rarr; TXT + m&eacute;tricas de fala</h1>
-        <button class="ghost" id="themeToggle" type="button" aria-pressed="false">Modo escuro</button>
+        <div class="topActions">
+          <a
+            class="repoBadge"
+            href="https://github.com/ASchneiderBR/teamsMettingTranscriptionCleaner"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir reposit&oacute;rio no GitHub"
+            title="Reposit&oacute;rio no GitHub"
+          >
+            <img src="https://img.shields.io/github/stars/ASchneiderBR/teamsMettingTranscriptionCleaner?style=social" alt="GitHub Stars do projeto" />
+          </a>
+          <button class="ghost" id="themeToggle" type="button" aria-pressed="false">Modo escuro</button>
+        </div>
       </div>
       <div class="topDesc">
         <p class="sub">Gera linhas <span class="kbd">Nome&gt;Texto</span> e calcula tempo por participante. Para DOCX, o tempo &eacute; estimado.</p>
@@ -324,7 +418,7 @@
             <input class="visuallyHidden" id="file" type="file" accept=".vtt,.docx,text/vtt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
             <div class="dropMeta" id="dropMeta">Nenhum arquivo selecionado</div>
           </div>
-          <div class="row cols3" style="margin-top:12px;">
+          <div class="row cols3 metadataRow" style="margin-top:12px;">
             <div>
               <label for="meetingDate">Dia da reuni&atilde;o (dd/mm/aa)</label>
               <input id="meetingDate" type="text" inputmode="numeric" placeholder="dd/mm/aa" />
@@ -351,8 +445,9 @@
           <label for="input">Cole aqui o conte&uacute;do do VTT (ou carregue .vtt/.docx acima)</label>
           <textarea id="input" placeholder="Cole aqui o conte&uacute;do do .vtt..."></textarea>
           <div class="controls">
-            <button class="primary" id="process">Processar</button>
-            <button id="clear">Limpar</button>
+            <button class="primary" id="pasteInput" type="button">Colar</button>
+            <button id="clear" type="button">Limpar</button>
+            <button class="primary" id="process" type="button">Processar</button>
             <span class="status" id="status">Pronto.</span>
           </div>
           <div class="hint" style="margin-top:10px;">
@@ -531,6 +626,7 @@
         </div>
       </div>
     </div>
+    <p class="siteCredit">criado por Antonio Schneider utilizando ferramentas de IA</p>
   </div>
 
   <script>
@@ -741,12 +837,24 @@
       "#db2777",
     ];
 
-    function pickBucketSeconds(totalSeconds) {
-      if (totalSeconds <= 300) return 15;
-      if (totalSeconds <= 1200) return 30;
-      if (totalSeconds <= 3600) return 60;
-      if (totalSeconds <= 7200) return 120;
-      return 300;
+    function pickBucketSeconds(totalSeconds, chartWidthPx) {
+      const width = Number.isFinite(chartWidthPx) && chartWidthPx > 0
+        ? chartWidthPx
+        : (window.innerWidth || 1024);
+
+      const minBucket = 120; // 2 min
+      const maxBucket = 300; // 5 min
+      const bucketStep = 30;
+
+      // Mantem tamanho lateral visual das barras mais estavel entre larguras diferentes.
+      const gapPx = 2;
+      const targetBarPx = 6;
+      const usableWidth = Math.max(120, width - 12); // desconta padding horizontal do chart
+      const desiredBars = Math.max(1, Math.floor((usableWidth + gapPx) / (targetBarPx + gapPx)));
+
+      const rawBucket = totalSeconds / desiredBars;
+      const snappedBucket = Math.ceil(rawBucket / bucketStep) * bucketStep;
+      return Math.max(minBucket, Math.min(maxBucket, snappedBucket));
     }
 
     function formatBucketLabel(seconds) {
@@ -1886,7 +1994,7 @@
         return;
       }
 
-      const bucketSeconds = pickBucketSeconds(stats.totalMeeting);
+      const bucketSeconds = pickBucketSeconds(stats.totalMeeting, timelineChart.clientWidth);
       const orderDesc = (stats.rows || []).map(r => r.name);
       const timeline = computeTimeline(cues, orderDesc, bucketSeconds);
       if (!timeline || timeline.maxBucketSeconds <= 0) {
@@ -2337,8 +2445,37 @@
       refreshOutputIfReady();
     });
 
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!lastProcessed) return;
+        renderTimeline(lastCues, lastStats);
+      }, 120);
+    });
+
     $("process").addEventListener("click", () => {
       reprocess({ silent: false });
+    });
+
+    $("pasteInput").addEventListener("click", async () => {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        setStatus("Clipboard n\u00e3o dispon\u00edvel no navegador.", "warn");
+        return;
+      }
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!String(text || "").trim()) {
+          setStatus("\u00c1rea de transfer\u00eancia vazia.", "warn");
+          return;
+        }
+        inputEl.value = text;
+        activeSource = "vtt";
+        setStatus("Conte\u00fado colado.", "success");
+      } catch (e) {
+        console.error(e);
+        setStatus("N\u00e3o foi poss\u00edvel ler a \u00e1rea de transfer\u00eancia.", "warn");
+      }
     });
 
     $("clear").addEventListener("click", () => {
