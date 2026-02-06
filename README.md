@@ -55,6 +55,7 @@ Texto...
 - **Tabela em texto de turnos** (participante, turnos, % turnos).
 - **Transcrição limpa** no formato `Nome>Texto`.
 - **Nomes padronizados** com capitalização consistente em VTT, DOCX e métricas.
+- **Indicadores de tamanho da saída**: total de caracteres e total de tokens estimados para uso com LLM (`1 token ~= 4 caracteres`).
 
 ## Opções do processamento
 - **Unir quebras internas** dentro do mesmo bloco.

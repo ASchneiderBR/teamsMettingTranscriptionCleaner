@@ -132,6 +132,9 @@
     .status.warn{color: var(--warning)}
     .status.muted{color: var(--muted)}
     .hint{font-size:12px; color: var(--muted); margin-top:8px}
+    .outputHead{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .outputHead label{margin:0}
+    .pillGroup.compact .pill{padding:4px 9px; font-size:11.5px}
 
     .dropzone{
       border:1.5px dashed var(--border2);
@@ -350,7 +353,13 @@
       <div class="colStack">
         <div class="card" id="cardOutput">
           <h2>Sa&iacute;da (TXT limpo)</h2>
-          <label for="output">Resumo + tabela (texto puro) + transcri&ccedil;&atilde;o</label>
+          <div class="outputHead">
+            <label for="output">Resumo + tabela (texto puro) + transcri&ccedil;&atilde;o</label>
+            <div class="pillGroup compact">
+              <span class="pill" id="outChars">Caracteres: Sem dados</span>
+              <span class="pill" id="outTokens" title="Estimativa aproximada para LLM (1 token ~= 4 caracteres).">Tokens (est.): Sem dados</span>
+            </div>
+          </div>
           <textarea id="output" readonly placeholder="O resultado aparecer&aacute; aqui..."></textarea>
           <div class="controls">
             <button class="primary" id="copy">Copiar</button>
@@ -461,6 +470,8 @@
     const outputEl = $("output");
     const statusEl = $("status");
     const outStatusEl = $("outStatus");
+    const outCharsEl = $("outChars");
+    const outTokensEl = $("outTokens");
 
     const meetingDateEl = $("meetingDate");
     const meetingStartEl = $("meetingStart");
@@ -495,6 +506,29 @@
       outStatusEl.className = `status ${tone}`;
     }
     function logDebug(...args) { console.log("[debug]", ...args); }
+
+    function formatCount(value) {
+      return Number(value || 0).toLocaleString("pt-BR");
+    }
+
+    function estimateTokensForLlm(text) {
+      const chars = String(text || "").length;
+      return chars > 0 ? Math.ceil(chars / 4) : 0;
+    }
+
+    function updateOutputInfo(text) {
+      if (!outCharsEl || !outTokensEl) return;
+      const raw = String(text || "");
+      if (!raw.trim()) {
+        outCharsEl.textContent = `Caracteres: ${EMPTY_METRICS_TEXT}`;
+        outTokensEl.textContent = `Tokens (est.): ${EMPTY_METRICS_TEXT}`;
+        return;
+      }
+      const chars = raw.length;
+      const tokens = estimateTokensForLlm(raw);
+      outCharsEl.textContent = `Caracteres: ${formatCount(chars)}`;
+      outTokensEl.textContent = `Tokens (est.): ${formatCount(tokens)}`;
+    }
 
     const THEME_KEY = "tmtc-theme";
 
@@ -1516,8 +1550,7 @@
         timelineChart.appendChild(bar);
       }
 
-      const maxMinutes = timeline.maxBucketSeconds / 60;
-      timelineMeta.textContent = `Resolu\u00e7\u00e3o: ${formatBucketLabel(bucketSeconds)} \u2022 Pico: ${maxMinutes.toFixed(1)} min`;
+      timelineMeta.textContent = `Resolu\u00e7\u00e3o: ${formatBucketLabel(bucketSeconds)}`;
       timelineStart.textContent = "0:00";
       timelineEnd.textContent = formatDuration(stats.totalMeeting);
 
@@ -1736,6 +1769,7 @@
     function refreshOutputIfReady() {
       if (!lastProcessed) return;
       outputEl.value = buildFinalOutput(lastCleanText, lastStats);
+      updateOutputInfo(outputEl.value);
     }
 
     function reprocessFromInput(options = {}) {
@@ -1746,6 +1780,7 @@
           setStatus("Nenhuma entrada para processar.", "warn");
         }
         outputEl.value = "";
+        updateOutputInfo(outputEl.value);
         setOutStatus("\u2014", "muted");
         lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
@@ -1770,6 +1805,7 @@
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
+        updateOutputInfo(outputEl.value);
         const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
         if (!options.silent) {
           setStatus("Processado.", "success");
@@ -1793,6 +1829,7 @@
         }
         logDebug("DOCX sem segmentos para processar", { hasDocx: !!lastDocx, segments: lastDocx && lastDocx.segments ? lastDocx.segments.length : 0 });
         outputEl.value = "";
+        updateOutputInfo(outputEl.value);
         setOutStatus("\u2014", "muted");
         lastStats = { totalMeeting: 0, totalSpeech: 0, totalTurns: 0, presence: [], rows: [], turnRows: [] };
         lastCues = [];
@@ -1817,6 +1854,7 @@
         renderTimeline(lastCues, lastStats);
         updateTitlePill();
         outputEl.value = buildFinalOutput(lastCleanText, lastStats);
+        updateOutputInfo(outputEl.value);
         const count = lastCleanText ? lastCleanText.split("\n").filter(Boolean).length : 0;
         if (!options.silent) {
           setStatus("Processado (DOCX).", "success");
@@ -1860,6 +1898,7 @@
     $("clear").addEventListener("click", () => {
       inputEl.value = "";
       outputEl.value = "";
+      updateOutputInfo(outputEl.value);
       fileEl.value = "";
       setDropMeta("");
       meetingTitleEl.value = "";
@@ -1926,6 +1965,7 @@
     renderTurns(lastStats);
     renderWordCloud(lastCues, lastCleanText);
     renderTimeline(lastCues, lastStats);
+    updateOutputInfo(outputEl.value);
   </script>
 </body>
 </html>
