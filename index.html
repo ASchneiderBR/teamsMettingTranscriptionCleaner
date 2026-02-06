@@ -549,6 +549,13 @@
       return s.replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
     }
 
+    function normalizeSpeakerName(name) {
+      const clean = normalizeSpaces(String(name || "").replace(/[:\uFF1A]\s*$/, ""));
+      if (!clean) return "";
+      const lower = clean.toLocaleLowerCase("pt-BR");
+      return lower.replace(/(^|[\s\-_'’`])(\p{L})/gu, (full, lead, char) => `${lead}${char.toLocaleUpperCase("pt-BR")}`);
+    }
+
     function tokenizeWords(text) {
       return String(text || "")
         .toLowerCase()
@@ -635,7 +642,9 @@
         if (!Number.isFinite(cue.startS) || !Number.isFinite(cue.endS)) continue;
         if (cue.endS <= cue.startS) continue;
         const speakers = cue.speakers || [];
-        const uniqueNames = Array.from(new Set(speakers.map(s => s.name).filter(Boolean)));
+        const uniqueNames = Array.from(new Set(
+          speakers.map(s => normalizeSpeakerName(s && s.name)).filter(Boolean)
+        ));
         if (!uniqueNames.length) continue;
 
         for (const name of uniqueNames) {
@@ -948,7 +957,7 @@
         return null;
       }
 
-      speaker = String(speaker).replace(/[:\uFF1A]\s*$/, "").trim();
+      speaker = normalizeSpeakerName(speaker);
       const text = normalizeSpaces(textParts.join(" "));
       if (!speaker || !text) return null;
       const startS = parseDocxTimeToSeconds(timeStr);
@@ -982,7 +991,7 @@
         }
 
         if (speaker && timeStr) {
-          speaker = String(speaker).replace(/[:\uFF1A]\s*$/, "").trim();
+          speaker = normalizeSpeakerName(speaker);
           const startS = parseDocxTimeToSeconds(timeStr);
           const textParts = [];
           while (i < lines.length) {
@@ -1120,11 +1129,12 @@
         const re = /<v\s+([^>]+)>([\s\S]*?)<\/v>/gi;
         let match;
         while ((match = re.exec(payloadText)) !== null) {
-          const speaker = (match[1] || "").trim();
+          const speaker = normalizeSpeakerName(match[1] || "");
           let content = match[2] || "";
           if (removeTags) content = stripAllTags(content);
           if (doTrim) content = normalizeSpaces(content);
-          if (!content && dropEmpty) continue;
+          if ((!speaker || !content) && dropEmpty) continue;
+          if (!speaker) continue;
           segs.push({ name: speaker, text: content });
           cleanLines.push(`${speaker}>${content}`);
         }
@@ -1147,19 +1157,19 @@
             let content = payloadText.slice(lastIndex, tag.index);
             if (removeTags) content = stripAllTags(content);
             if (doTrim) content = normalizeSpaces(content);
-            if (content || !dropEmpty) {
+            if (lastName && (content || !dropEmpty)) {
               looseSegs.push({ name: lastName, text: content });
               if (content) cleanLines.push(`${lastName}>${content}`);
             }
           }
-          lastName = (tag[1] || "").trim();
+          lastName = normalizeSpeakerName(tag[1] || "");
           lastIndex = tagRe.lastIndex;
         }
         if (lastName !== null) {
           let content = payloadText.slice(lastIndex);
           if (removeTags) content = stripAllTags(content);
           if (doTrim) content = normalizeSpaces(content);
-          if (content || !dropEmpty) {
+          if (lastName && (content || !dropEmpty)) {
             looseSegs.push({ name: lastName, text: content });
             if (content) cleanLines.push(`${lastName}>${content}`);
           }
@@ -1179,9 +1189,10 @@
 
         const m2 = line.match(/^(.{2,80}?)[\uFF1A:]\s*(.+)$/);
         if (m2) {
-          const speaker = doTrim ? normalizeSpaces(m2[1]) : m2[1].trim();
+          const speaker = normalizeSpeakerName(m2[1]);
           const content = doTrim ? normalizeSpaces(m2[2]) : m2[2].trim();
-          if (!content && dropEmpty) continue;
+          if ((!speaker || !content) && dropEmpty) continue;
+          if (!speaker) continue;
           cleanLines.push(`${speaker}>${content}`);
           if (Number.isFinite(startS) && Number.isFinite(endS) && endS >= startS) {
             cues.push({ startS, endS, speakers: [{ name: speaker, text: content }] });
@@ -1210,7 +1221,9 @@
         const speakers = cue.speakers || [];
         if (!speakers.length) continue;
 
-        const uniqueNames = Array.from(new Set(speakers.map(s => s.name).filter(Boolean)));
+        const uniqueNames = Array.from(new Set(
+          speakers.map(s => normalizeSpeakerName(s && s.name)).filter(Boolean)
+        ));
         uniqueNames.forEach(n => presence.add(n));
 
         const share = uniqueNames.length ? dur / uniqueNames.length : 0;

@@ -11,6 +11,7 @@ Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCle
 - Lê arquivo `.docx` de transcrição do Teams.
 - Converte o conteúdo para linhas no formato `Nome>Texto`.
 - Remove tags VTT (`<v>`, `<c>` etc.) e normaliza espaços.
+- Normaliza nomes de participantes para o formato com primeira letra maiúscula (ex.: `joAO da silva` -> `Joao Da Silva`).
 - Calcula tempo de fala por participante:
   - VTT: usa timestamps dos cues.
   - DOCX: estima pela contagem de caracteres.
@@ -53,6 +54,7 @@ Texto...
 - **Tabela em texto** (participante, tempo, % fala).
 - **Tabela em texto de turnos** (participante, turnos, % turnos).
 - **Transcrição limpa** no formato `Nome>Texto`.
+- **Nomes padronizados** com capitalização consistente em VTT, DOCX e métricas.
 
 ## Opções do processamento
 - **Unir quebras internas** dentro do mesmo bloco.
