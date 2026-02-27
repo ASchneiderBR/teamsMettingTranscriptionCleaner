@@ -10,6 +10,8 @@
   <style>
     :root{
       color-scheme: light dark;
+      --theme-fade-ms: 280ms;
+      --theme-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
       --page: linear-gradient(180deg, #f4f6fb 0%, #e9eef7 100%);
       --bg:#f4f6fb; --fg:#0f172a; --muted:#586274;
       --card:#ffffff; --border:#e0e6ef; --border2:#cfd6e2;
@@ -52,13 +54,17 @@
     }
     *{box-sizing:border-box}
     html, body{max-width:100%; overflow-x:hidden}
-    body{margin:0; padding:0; font-family: var(--sans); font-size:14px; line-height:1.5; background: transparent; color: var(--fg); position: relative; overflow-x:hidden}
+    body{
+      margin:0; padding:0; font-family: var(--sans); font-size:14px; line-height:1.5; background: transparent; color: var(--fg); position: relative; overflow-x:hidden;
+      transition: color var(--theme-fade-ms) var(--theme-fade-ease);
+    }
     body::before{
       content:"";
       position: fixed;
       inset:0;
       background: var(--page);
       z-index:-1;
+      transition: background var(--theme-fade-ms) var(--theme-fade-ease);
     }
     .wrap{width:100%; max-width:1120px; margin:0 auto; padding:28px 28px 18px}
 
@@ -121,7 +127,13 @@
       }
     }
 
-    .card{border:1px solid var(--border); border-radius: var(--r); padding:18px; background: var(--card); box-shadow: var(--shadow)}
+    .card{
+      border:1px solid var(--border); border-radius: var(--r); padding:18px; background: var(--card); box-shadow: var(--shadow);
+      transition:
+        background-color var(--theme-fade-ms) var(--theme-fade-ease),
+        border-color var(--theme-fade-ms) var(--theme-fade-ease),
+        box-shadow var(--theme-fade-ms) var(--theme-fade-ease);
+    }
     .card h2{font-size:15px; margin:0 0 12px; opacity:0.95}
 
     .row{display:grid; grid-template-columns: 1fr; gap:12px}
@@ -180,7 +192,15 @@
     }
 
     .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px}
-    button{border:1px solid var(--btnBorder); background: var(--btn); color: var(--fg); padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700; transition: transform 0.12s ease, box-shadow 0.2s ease}
+    button{
+      border:1px solid var(--btnBorder); background: var(--btn); color: var(--fg); padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700;
+      transition:
+        transform 0.12s ease,
+        box-shadow 0.2s ease,
+        background-color var(--theme-fade-ms) var(--theme-fade-ease),
+        border-color var(--theme-fade-ms) var(--theme-fade-ease),
+        color var(--theme-fade-ms) var(--theme-fade-ease);
+    }
     button.primary{background: var(--primary); border-color: var(--primaryBorder); color: var(--primaryText); box-shadow: 0 10px 18px rgba(91, 95, 199, 0.25)}
     button.ghost{background: transparent; border-color: var(--border2); box-shadow:none}
     button:active{transform: translateY(1px)}
@@ -286,6 +306,10 @@
       background: var(--card);
       box-shadow: var(--shadowSoft);
       margin-bottom:14px;
+      transition:
+        background-color var(--theme-fade-ms) var(--theme-fade-ease),
+        border-color var(--theme-fade-ms) var(--theme-fade-ease),
+        box-shadow var(--theme-fade-ms) var(--theme-fade-ease);
     }
     .metricsStickyTitle{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color: var(--muted); margin-bottom:6px}
     .metricsPills{display:flex; flex-wrap:wrap; gap:8px}
@@ -331,6 +355,19 @@
     }
     .wordCloud.chartEmpty{color: var(--muted); font-size:12.5px}
 
+    input[type=file], input[type=text], textarea, table, th, td, .pill, .kbd, .chartGrid, .wordCloud, .legendSwatch, .bar{
+      transition:
+        background-color var(--theme-fade-ms) var(--theme-fade-ease),
+        color var(--theme-fade-ms) var(--theme-fade-ease),
+        border-color var(--theme-fade-ms) var(--theme-fade-ease),
+        box-shadow var(--theme-fade-ms) var(--theme-fade-ease),
+        background var(--theme-fade-ms) var(--theme-fade-ease);
+    }
+
+    .sub, .hint, .status, .dropMeta, .chartMeta, .legendItem, .siteCredit, .chartAxis{
+      transition: color var(--theme-fade-ms) var(--theme-fade-ease);
+    }
+
     /* jQCloud styles */
     div.jqcloud { font-size: 13px; line-height: normal; overflow: hidden; position: relative; margin: 0; }
     div.jqcloud a { font-size: inherit; text-decoration: none; }
@@ -368,6 +405,26 @@
     div.jqcloud span:hover { color: #0099B2; }
     div.jqcloud span { padding: 0; }
     div.jqcloud.wordCloud.chartEmpty { color: var(--muted); font-size:12.5px; }
+
+    @media (prefers-reduced-motion: no-preference){
+      ::view-transition-old(root),
+      ::view-transition-new(root){
+        animation-duration: var(--theme-fade-ms);
+        animation-timing-function: var(--theme-fade-ease);
+      }
+      ::view-transition-old(root){ animation-name: themeFadeOut; }
+      ::view-transition-new(root){ animation-name: themeFadeIn; }
+    }
+
+    @keyframes themeFadeIn{
+      from{ opacity:0; }
+      to{ opacity:1; }
+    }
+
+    @keyframes themeFadeOut{
+      from{ opacity:1; }
+      to{ opacity:0; }
+    }
   </style>
 </head>
 <body>
@@ -632,6 +689,20 @@
   <script>
     const $ = (id) => document.getElementById(id);
 
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    function ensureTopOnLoad() {
+      if (window.location.hash) return;
+      const toTop = () => window.scrollTo(0, 0);
+      toTop();
+      requestAnimationFrame(toTop);
+      window.addEventListener("load", toTop, { once: true });
+    }
+
+    ensureTopOnLoad();
+
     const themeToggle = $("themeToggle");
     const fileEl = $("file");
     const dropzone = $("dropzone");
@@ -715,6 +786,10 @@
       return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
 
+    function prefersReducedMotion() {
+      return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
     function setThemeToggleLabel(isDark) {
       if (!themeToggle) return;
       themeToggle.textContent = isDark ? "Modo claro" : "Modo escuro";
@@ -731,6 +806,27 @@
       setThemeToggleLabel(getSystemPrefersDark());
     }
 
+    function applyThemeWithFade(theme) {
+      const commit = () => {
+        localStorage.setItem(THEME_KEY, theme);
+        applyTheme(theme);
+      };
+
+      if (prefersReducedMotion()) {
+        commit();
+        return;
+      }
+
+      if (typeof document.startViewTransition === "function") {
+        document.startViewTransition(() => {
+          commit();
+        });
+        return;
+      }
+
+      commit();
+    }
+
     if (themeToggle) {
       const savedTheme = localStorage.getItem(THEME_KEY);
       applyTheme(savedTheme);
@@ -738,8 +834,28 @@
         const current = document.documentElement.getAttribute("data-theme");
         const isDark = current ? current === "dark" : getSystemPrefersDark();
         const next = isDark ? "light" : "dark";
-        localStorage.setItem(THEME_KEY, next);
-        applyTheme(next);
+        applyThemeWithFade(next);
+      });
+    }
+
+    function animateContainersInSequence() {
+      if (prefersReducedMotion()) return;
+      if (typeof Element === "undefined" || typeof Element.prototype.animate !== "function") return;
+
+      const containers = Array.from(document.querySelectorAll(".top, .card, .siteCredit"));
+      containers.forEach((container, index) => {
+        container.animate(
+          [
+            { opacity: 0, transform: "translateY(16px)", filter: "blur(4px)" },
+            { opacity: 1, transform: "translateY(0)", filter: "blur(0)" },
+          ],
+          {
+            duration: 560,
+            delay: index * 90,
+            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+            fill: "both",
+          }
+        );
       });
     }
 
@@ -2553,6 +2669,7 @@
     renderWordCloud(lastCues, lastCleanText);
     renderTimeline(lastCues, lastStats);
     updateOutputInfo(outputEl.value);
+    animateContainersInSequence();
   </script>
 </body>
 </html>
