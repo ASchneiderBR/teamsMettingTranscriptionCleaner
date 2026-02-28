@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light dark;
+  --theme-fade-ms: 220ms;
+  --theme-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page: radial-gradient(circle at top left, rgba(28, 99, 233, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.12), transparent 32%),
+    linear-gradient(180deg, #f5f7fb 0%, #ecf1f9 100%);
+  --bg: #f5f7fb;
+  --fg: #0f172a;
+  --muted: #5b6474;
+  --card: rgba(255, 255, 255, 0.92);
+  --border: #d8e0ec;
+  --border-strong: #bfcade;
+  --field: rgba(15, 23, 42, 0.045);
+  --btn: #eef3f9;
+  --btn-border: #c9d3e2;
+  --primary: #155eef;
+  --primary-strong: #0f4fd0;
+  --primary-text: #f8fbff;
+  --success: #15803d;
+  --warning: #c2410c;
+  --word-cloud-stroke: rgba(255, 255, 255, 0.4);
+  --shadow: 0 18px 52px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --sans: "Segoe UI Variable Display", "Segoe UI", "Aptos", "Trebuchet MS", "Helvetica Neue", Arial,
+    sans-serif;
+  --mono: "Cascadia Code", "SFMono-Regular", "Consolas", "Liberation Mono", "Courier New", monospace;
+}
+
+:root[data-theme="dark"] {
+  --page: radial-gradient(circle at top left, rgba(37, 99, 235, 0.24), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.18), transparent 32%),
+    linear-gradient(180deg, #07111f 0%, #0b1324 100%);
+  --bg: #07111f;
+  --fg: #e7edf7;
+  --muted: #9aa6b8;
+  --card: rgba(14, 22, 37, 0.92);
+  --border: #243147;
+  --border-strong: #36445c;
+  --field: rgba(255, 255, 255, 0.06);
+  --btn: #172235;
+  --btn-border: #2a3952;
+  --primary: #3b82f6;
+  --primary-strong: #60a5fa;
+  --primary-text: #eff6ff;
+  --success: #34d399;
+  --warning: #fb923c;
+  --word-cloud-stroke: rgba(7, 17, 31, 0.72);
+  --shadow: 0 22px 58px rgba(0, 0, 0, 0.34);
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.26);
+}

@@ -1,0 +1,90 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--bg);
+  transition: color var(--theme-fade-ms) var(--theme-fade-ease);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--page);
+  transition: opacity var(--theme-fade-ms) var(--theme-fade-ease), background var(--theme-fade-ms)
+    var(--theme-fade-ease);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--theme-fade-ms);
+    animation-timing-function: var(--theme-fade-ease);
+  }
+
+  ::view-transition-old(root) {
+    animation-name: themeFadeOut;
+  }
+
+  ::view-transition-new(root) {
+    animation-name: themeFadeIn;
+  }
+}
+
+@keyframes themeFadeIn {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes themeFadeOut {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}

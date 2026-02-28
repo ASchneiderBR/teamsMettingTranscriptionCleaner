@@ -1,0 +1,30 @@
+{
+  "name": "teams-meeting-transcription-cleaner",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "check": "npm run lint && npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "d3-cloud-ts": "^1.2.41",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.13.10",
+    "jsdom": "^26.0.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.8"
+  }
+}

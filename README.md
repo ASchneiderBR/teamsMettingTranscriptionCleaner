@@ -1,99 +1,186 @@
-﻿# Teams Meeting Transcription Cleaner (HTML único)
+# Teams Meeting Transcription Cleaner
 
-![License](https://img.shields.io/badge/license-MIT-green)
+Aplicacao web estatica para limpar transcricoes do Microsoft Teams em `.vtt` e `.docx`, gerar um TXT pronto para uso e exibir metricas de fala por participante. Tudo roda localmente no navegador, sem backend.
 
-Projeto em HTML único para limpar transcrições do Microsoft Teams em `.vtt` e `.docx`, gerar um TXT pronto para uso e exibir métricas de fala por participante.
+## Visao geral
 
-Demo (GitHub Pages): https://aschneiderbr.github.io/teamsMettingTranscriptionCleaner/
+O projeto foi refatorado de um HTML unico para uma aplicacao modular em `Vite + TypeScript`, com separacao clara entre:
 
-## O que ele faz (v2)
-- Lê arquivo `.vtt` local ou texto colado.
-- Lê arquivo `.docx` de transcrição do Teams.
-- Converte o conteúdo para linhas no formato `Nome>Texto`.
-- Remove tags VTT (`<v>`, `<c>` etc.) e normaliza espaços.
-- Normaliza nomes de participantes para o formato com primeira letra maiúscula (ex.: `joAO da silva` -> `Joao Da Silva`).
-- Calcula tempo de fala por participante:
-  - VTT: usa timestamps dos cues.
-  - DOCX: estima pela contagem de caracteres.
-- Calcula turnos (número de intervenções e % de turnos) por participante.
-- Calcula variedade de vocabulário por participante e na reunião:
-  - TTR (tipos/total de palavras, mais sensível ao tamanho do texto).
-  - MTLD (medida mais estável da diversidade lexical; quanto maior, maior a variedade).
-- Gera um resumo em texto puro, tabela e transcrição limpa.
-- Permite copiar o resultado e baixar um `.txt`.
-- Exibe métricas visuais no próprio HTML.
-- Gera uma nuvem de palavras com as 30 palavras mais repetidas.
-- Exibe expressões mais frequentes da reunião:
-  - Bi-gramas (sequências de 2 palavras).
-  - Tri-gramas (sequências de 3 palavras).
-  - Ignora repetições idênticas como `sim sim` e `não não não`.
-- Inclui botão **Colar** na área de entrada (cola direto da área de transferência).
-- Layout responsivo melhorado para modo vertical mobile (1 coluna, centralizado, com padding lateral reduzido).
-- Gráfico **Fala ao longo do tempo** com resolução dinâmica pela largura disponível:
-  - Mantém largura visual das barras mais estável.
-  - Ajusta a janela entre **2 e 5 minutos** (maior janela em áreas menores).
+- `app`: bootstrap, store, acoes, selectors e controller.
+- `domain`: parsing, metricas e exportacao em funcoes puras.
+- `platform`: integracao com browser, arquivos e runtime.
+- `ui`: shell HTML, refs e renderers.
+- `styles`: tokens, base, layout e componentes.
+
+## Stack
+
+- Vite
+- TypeScript estrito
+- Vitest + jsdom
+- Biome
+- `fflate` para leitura de `.docx`
+
+## Funcionalidades
+
+- Importa arquivos `.vtt` do Teams.
+- Importa arquivos `.docx` exportados pelo Teams.
+- Aceita texto VTT colado manualmente.
+- Converte falas para o formato `Nome>Texto`.
+- Remove tags VTT e normaliza espacos.
+- Padroniza nomes de participantes.
+- Calcula tempo de fala por participante.
+- Calcula turnos e percentual de turnos.
+- Calcula TTR e MTLD por participante e na reuniao.
+- Exibe bigramas, trigramas, nuvem de palavras e timeline de fala.
+- Gera saida em texto puro para copiar ou baixar.
+- Mantem execucao 100% local.
 
 ## Como usar
-1. Abra `index.html` no navegador.
-2. Carregue um arquivo `.vtt` ou `.docx` (ou use o botão **Colar** no card de entrada para colar da área de transferência).
-3. (Opcional) informe data, horário de início, título e observações.
-4. Clique em **Processar**.
-5. Use **Limpar** para resetar os dados quando necessário.
-6. Copie ou baixe o TXT gerado.
 
-## Entrada esperada (VTT)
-O parser tenta lidar com VTTs do Teams no formato:
+1. Carregue um `.vtt` ou `.docx`, ou cole o conteudo de um VTT.
+2. Preencha opcionalmente data, horario, titulo e observacoes.
+3. Clique em `Processar`.
+4. Copie ou baixe o TXT gerado.
 
+## Desenvolvimento
+
+### Instalacao
+
+```bash
+npm install
 ```
+
+### Rodar localmente
+
+```bash
+npm run dev
+```
+
+### Build de producao
+
+```bash
+npm run build
+npm run preview
+```
+
+O bundle final e gerado em `dist/`.
+
+## Scripts disponiveis
+
+- `npm run dev`: servidor local de desenvolvimento.
+- `npm run build`: build de producao.
+- `npm run preview`: preview local do build.
+- `npm run test`: executa a suite de testes.
+- `npm run test:watch`: roda testes em modo watch.
+- `npm run typecheck`: validacao TypeScript.
+- `npm run lint`: checagem Biome.
+- `npm run check`: lint + typecheck + testes.
+
+## Estrutura do projeto
+
+```text
+src/
+  app/
+  domain/
+  platform/
+  ui/
+  styles/
+public/
+```
+
+- `src/app`: bootstrap, estado e orquestracao.
+- `src/domain`: regras de negocio, parsers e metricas.
+- `src/platform`: integracao com browser, arquivos e runtime.
+- `src/ui`: shell e renderizacao.
+- `src/styles`: tokens e folhas de estilo.
+- `public`: assets estaticos como favicon.
+
+## Formatos de entrada
+
+### VTT
+
+Formato esperado principal:
+
+```text
 WEBVTT
 
 00:00:00.000 --> 00:00:02.000
 <v Nome>Texto...</v>
 ```
 
-Se não houver `<v Nome>`, o código tenta o fallback `Nome: Texto`.
+Fallback suportado:
 
-## Entrada esperada (DOCX)
-Arquivos `.docx` exportados pelo Microsoft Teams com blocos de fala no formato:
-
+```text
+Nome: Texto
 ```
+
+### DOCX
+
+Formato esperado principal:
+
+```text
 Nome
 0:03
 Texto...
 ```
 
-## Saída gerada
-- **Resumo** com título, data/hora, participantes e tempos.
-- **Tabela em texto** (participante, tempo, % fala).
-- **Tabela em texto de turnos** (participante, turnos, % turnos).
-- **Tabela em texto de variedade de vocabulário** (tipos, TTR e MTLD por participante e reunião).
-- **Expressões mais frequentes em texto** (bi-gramas e tri-gramas, com filtro de repetições idênticas).
-- **Transcrição limpa** no formato `Nome>Texto`.
-- **Nomes padronizados** com capitalização consistente em VTT, DOCX e métricas.
-- **Indicadores de tamanho da saída**: total de caracteres e total de tokens estimados para uso com LLM (`1 token ~= 4 caracteres`).
+Tambem ha fallback para linhas inline:
 
-## Opções do processamento
-- **Unir quebras internas** dentro do mesmo bloco.
-- **Normalizar espaços** (remove duplicados e aparas).
-- **Remover tags** (`<v>`, `<c>`, etc.).
-- **Remover linhas vazias**.
+```text
+Nome 0:03 Texto...
+```
 
-## Privacidade e execução local
-- Tudo roda 100% localmente no navegador.
-- Nenhum dado é enviado para servidor (funciona offline).
-- Ideal para publicar no GitHub Pages sem backend.
+## Saida gerada
 
-## Limitações atuais
-- Métricas dependem de timestamps corretos no VTT.
-- Quando um cue tem mais de um participante, o tempo é dividido igualmente.
-- No DOCX o tempo é estimado por caracteres (não há timestamp por palavra).
-- O título é inferido do nome do arquivo, caso não seja informado.
-- O navegador precisa suportar `DecompressionStream` para ler DOCX (Chrome/Edge modernos).
+- Resumo com titulo, data, horario e observacoes.
+- Tabelas em texto de fala, turnos e lexico.
+- Bigramas e trigramas mais frequentes.
+- Transcricao limpa em `Nome>Texto`.
+- Contagem de caracteres e estimativa de tokens.
 
-## Roadmap curto (ideias)
-- Ajustes finos no parser de DOCX para variações de layout.
-- Exportar CSV das métricas.
-- Mais visualizações de métricas.
+## Qualidade
 
-## Desenvolvimento
-Este repo é um HTML único, sem build. Basta editar `index.html`.
+O projeto hoje e validado com:
+
+- testes unitarios de parser VTT
+- testes unitarios de parser DOCX
+- testes de metricas
+- testes de integracao da UI em jsdom
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+
+## Limitacoes
+
+- As metricas dependem de timestamps corretos no VTT.
+- Quando um cue possui mais de um participante, o tempo e dividido igualmente.
+- No DOCX, o tempo e estimado por caracteres.
+- O parser DOCX cobre o layout mais comum do Teams e possui fallback, mas nao garante compatibilidade com toda variacao de export.
+- O titulo e inferido do nome do arquivo quando nao e informado manualmente.
+
+## Deploy no homelab
+
+O repositorio inclui o script `deploy-homelab.cmd`, que:
+
+- roda `npm run build`
+- limpa a pasta remota `/usr/share/caddy/reuniaoTeams`
+- envia os arquivos de `dist/` usando `plink` e `pscp`
+
+Pre-requisitos:
+
+- PuTTY instalado em:
+  - `C:\Program Files\PuTTY\plink.exe`
+  - `C:\Program Files\PuTTY\pscp.exe`
+- acesso SSH ao host configurado no script
+
+Para executar:
+
+```bat
+deploy-homelab.cmd
+```
+
+## Privacidade
+
+- Nenhum dado e enviado para servidor pela aplicacao.
+- O processamento acontece no navegador do usuario.
+- Ideal para uso interno ou publicacao estatica.
