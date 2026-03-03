@@ -68,6 +68,20 @@ describe("metrics", () => {
     expect(words.find((row) => row.word === "roadmap")?.count).toBe(2);
   });
 
+  it("ignores participant names in ngrams", () => {
+    const ngrams = computeNgramMetrics(
+      "ana falou do roadmap e bruno falou do roadmap com a equipe",
+      10,
+      ["Ana", "Bruno Silva"],
+    );
+
+    expect(ngrams.bigrams.rows.some((row) => row.gram.includes("ana"))).toBe(false);
+    expect(ngrams.bigrams.rows.some((row) => row.gram.includes("bruno"))).toBe(false);
+    expect(ngrams.bigrams.rows.some((row) => row.gram.includes("silva"))).toBe(false);
+    expect(ngrams.bigrams.rows.some((row) => row.gram === "do roadmap")).toBe(true);
+    expect(ngrams.trigrams.rows.some((row) => row.gram === "falou do roadmap")).toBe(true);
+  });
+
   it("chooses timeline bucket between 2 and 5 minutes", () => {
     const bucket = pickBucketSeconds(3600, 320);
     expect(bucket).toBeGreaterThanOrEqual(120);

@@ -1,7 +1,7 @@
 import { buildDocxCuesFromSegments } from "./build-docx-cues";
 import { AppError } from "./errors";
 import { computeLexicalMetrics } from "./metrics/lexical";
-import { computeNgramMetrics } from "./metrics/ngrams";
+import { NGRAM_TOP_LIMIT, computeNgramMetrics } from "./metrics/ngrams";
 import { computeSpeechMetrics } from "./metrics/speech";
 import { computeTurnMetrics } from "./metrics/turns";
 import { computeWordCloudData } from "./metrics/word-cloud";
@@ -30,7 +30,7 @@ function buildProcessedTranscript(
   const speech = computeSpeechMetrics(cues);
   const turns = computeTurnMetrics(cues);
   const lexical = computeLexicalMetrics(cues, cleanText);
-  const ngrams = computeNgramMetrics(cleanText);
+  const ngrams = computeNgramMetrics(cleanText, NGRAM_TOP_LIMIT, speech.presence);
   const wordCloud = computeWordCloudData(cleanText, undefined, speech.presence);
 
   return {
